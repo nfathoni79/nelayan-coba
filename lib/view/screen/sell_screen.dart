@@ -4,8 +4,7 @@ import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/mart_repo.dart';
 import 'package:nelayan_coba/model/sell_fish.dart';
 import 'package:nelayan_coba/view/screen/sell_history_screen.dart';
-import 'package:nelayan_coba/view/widget/fish_dropdown.dart';
-import 'package:nelayan_coba/view/widget/mart_dropdown.dart';
+import 'package:nelayan_coba/view/widget/my_dropdown.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
 
 class SellScreen extends StatefulWidget {
@@ -20,17 +19,17 @@ class _SellScreenState extends State<SellScreen> {
   int _fishId = 1;
   final List<Mart> _martList = MartRepo.martList;
   final List<Fish> _fishList = MartRepo.fishList;
+  final List<SellFish> _sellFishList = [];
 
-  List<SellFish> _sellFishList = [];
-
-  TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Jual Ikan'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        title: const Text('Jual Ikan'),
         actions: [
           IconButton(
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(
@@ -46,46 +45,36 @@ class _SellScreenState extends State<SellScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            MartDropdown(
-              martList: _martList,
-              currentMartId: _martId,
-              onChanged: (value) {
-                if (value is int) {
-                  setState(() {
-                    _martId = value;
-                  });
-                }
+            MyDropdown<Mart>(
+              items: _martList,
+              itemAsString: (mart) => mart.name,
+              compareFn: (a, b) => a.id == b.id,
+              prefixIcon: const Icon(Icons.store),
+              selectedItem: _martList[_martId - 1],
+              onChanged: (mart) => {
+                if (mart is Mart) {setState(() => _martId = mart.id)}
               },
             ),
-            FishDropdown(
-              fishList: _fishList,
-              currentFishId: _fishId,
-              onChanged: (value) {
-                if (value is int) {
-                  setState(() {
-                    _fishId = value;
-                    _quantityController.clear();
-                  });
-                }
+            const SizedBox(height: 8),
+            MyDropdown<Fish>(
+              items: _fishList,
+              itemAsString: (mart) => mart.name,
+              compareFn: (a, b) => a.id == b.id,
+              prefixIcon: const Icon(Icons.set_meal),
+              selectedItem: _fishList[_fishId - 1],
+              onChanged: (fish) => {
+                if (fish is Fish) {setState(() => _fishId = fish.id)}
               },
             ),
-            Row(
-              children: [
-                const Icon(Icons.scale),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: _quantityController,
-                    decoration: const InputDecoration(
-                      border: UnderlineInputBorder(),
-                      hintText: 'Jumlah',
-                      suffixText: 'Kg',
-                    ),
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.done,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 8),
+            MyTextFormField(
+              controller: _quantityController,
+              prefixIcon: const Icon(Icons.scale),
+              suffixText: 'Kg',
+              hintText: 'Jumlah',
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              useLoginStyle: false,
             ),
             const SizedBox(height: 8),
             ElevatedButton(
@@ -106,11 +95,12 @@ class _SellScreenState extends State<SellScreen> {
                   }
                 });
               },
-              child: Text('Tambah'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.green.shade50,
+                elevation: 2,
               ),
+              child: const Text('Tambah'),
             ),
             // const SizedBox(height: 8),
             const Divider(),
@@ -127,11 +117,12 @@ class _SellScreenState extends State<SellScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => setState(() => _sellFishList.clear()),
-                    child: Text('Kosongkan'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.red.shade50,
+                      elevation: 2,
                     ),
+                    child: const Text('Kosongkan'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -140,24 +131,26 @@ class _SellScreenState extends State<SellScreen> {
                     onPressed: () => showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Sukses'),
-                        content: Text('Penjualan berhasil. Cek status penjualan Anda di Riwayat Penjualan.'),
+                        title: const Text('Sukses'),
+                        content: const Text(
+                            'Penjualan berhasil. Cek status penjualan Anda di Riwayat Penjualan.'),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text('Tutup'),
+                            child: const Text('Tutup'),
                           ),
                         ],
                       ),
                       barrierDismissible: true,
                     ),
-                    child: Text('Jual'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.blue.shade50,
+                      elevation: 2,
                     ),
+                    child: const Text('Jual'),
                   ),
                 ),
               ],

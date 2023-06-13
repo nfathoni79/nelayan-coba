@@ -42,7 +42,7 @@ class MartHistoryCard extends StatelessWidget {
               ],
             ),
             Text(
-              '12800 IDR',
+              '12.800 IDR',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

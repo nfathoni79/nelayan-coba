@@ -2,6 +2,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/mart_repo.dart';
 import 'package:nelayan_coba/model/wallet.dart';
+import 'package:nelayan_coba/view/widget/my_dropdown.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
 
 class TransferScreen extends StatefulWidget {
@@ -12,7 +13,6 @@ class TransferScreen extends StatefulWidget {
 }
 
 class _TransferScreenState extends State<TransferScreen> {
-
   int _walletId = 1;
   final List<Wallet> _walletList = MartRepo.walletList;
 
@@ -20,7 +20,8 @@ class _TransferScreenState extends State<TransferScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         title: const Text('Transfer'),
       ),
       body: Container(
@@ -33,34 +34,48 @@ class _TransferScreenState extends State<TransferScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Saldo Anda'),
-                        Text('1650000 IDR'),
+                        Text('1.635.500 IDR'),
                       ],
                     ),
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Biaya Layanan'),
-                        Text('1000 IDR'),
+                        Text('1.000 IDR'),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    _buildWalletDropdown(),
-                    const SizedBox(height: 24),
-                    MyTextFormField(
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    MyDropdown<Wallet>(
+                      items: _walletList,
+                      itemAsString: (wallet) => wallet.user,
+                      compareFn: (a, b) => a.id == b.id,
+                      labelText: 'Wallet Tujuan',
+                      prefixIcon: const Icon(Icons.wallet),
+                      selectedItem: _walletList[_walletId - 1],
+                      onChanged: (wallet) => {
+                        if (wallet is Wallet)
+                          {setState(() => _walletId = wallet.id)}
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const MyTextFormField(
                       labelText: 'Nominal Transfer',
                       suffixText: 'IDR',
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
+                      useLoginStyle: false,
                     ),
                     const SizedBox(height: 16),
-                    MyTextFormField(
+                    const MyTextFormField(
                       labelText: 'Keterangan (opsional)',
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
+                      useLoginStyle: false,
                     ),
                   ],
                 ),
@@ -68,11 +83,12 @@ class _TransferScreenState extends State<TransferScreen> {
             ),
             ElevatedButton(
               onPressed: () {},
-              child: Text('Transfer'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.blue.shade50,
+                elevation: 2,
               ),
+              child: const Text('Transfer'),
             ),
           ],
         ),

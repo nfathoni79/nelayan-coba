@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/product_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -19,23 +20,22 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(name),
+            const SizedBox(height: 8),
             Expanded(
-              child: Text(name),
-            ),
-            Text(
-              '$price IDR',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+              child: Text(
+                '${MyUtils.formatNumber(price)} IDR',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ProductScreen(),
-                )
-              ),
-              child: Text('Detail'),
+            TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const ProductScreen(),
+              )),
+              child: const Text('Detail'),
             ),
           ],
         ),

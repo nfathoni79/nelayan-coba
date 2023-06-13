@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class MyTextFormField extends StatelessWidget {
   const MyTextFormField({
     super.key,
+    this.controller,
     this.labelText,
+    this.hintText,
+    this.prefixIcon,
     this.prefixText,
     this.suffixText,
     this.keyboardType,
@@ -13,7 +16,10 @@ class MyTextFormField extends StatelessWidget {
     this.useLoginStyle = true,
   });
 
+  final TextEditingController? controller;
   final String? labelText;
+  final String? hintText;
+  final Widget? prefixIcon;
   final String? prefixText;
   final String? suffixText;
   final TextInputType? keyboardType;
@@ -25,7 +31,6 @@ class MyTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget? labelWidget;
-    Widget? prefixWidget;
 
     if (labelText != null) {
       labelWidget = Container(
@@ -39,8 +44,6 @@ class MyTextFormField extends StatelessWidget {
         child: Text(labelText!),
       );
     }
-
-    if (prefixText != null) prefixWidget = Text(prefixText!);
 
     return TextFormField(
       decoration: InputDecoration(
@@ -61,11 +64,14 @@ class MyTextFormField extends StatelessWidget {
         ),
         contentPadding: const EdgeInsets.all(16),
         label: labelWidget,
-        prefix: prefixWidget,
+        hintText: hintText,
+        prefixIcon: prefixIcon,
+        prefixText: prefixText,
         suffixText: suffixText,
         filled: useLoginStyle,
         fillColor: Colors.blue.shade50,
       ),
+      controller: controller,
       keyboardType: keyboardType,
       maxLength: maxLength,
       maxLines: maxLines,
