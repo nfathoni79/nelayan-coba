@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/view/screen/home_screen.dart';
+import 'package:nelayan_coba/view/screen/intro_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -36,7 +39,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const IntroScreen(),
     );
   }
 }

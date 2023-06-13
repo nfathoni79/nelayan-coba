@@ -39,6 +39,8 @@ dependencies:
   carousel_slider: ^4.2.1
   dropdown_search: ^5.0.6
   intl: ^0.18.1
+  http: ^1.0.0
+  shared_preferences: ^2.1.2
 
 dev_dependencies:
   flutter_test:

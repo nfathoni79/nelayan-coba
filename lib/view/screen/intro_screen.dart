@@ -4,6 +4,7 @@ import 'package:nelayan_coba/model/intro_repo.dart';
 import 'package:nelayan_coba/view/screen/home_screen.dart';
 import 'package:nelayan_coba/view/screen/login_screen.dart';
 import 'package:nelayan_coba/view/widget/intro_item.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -15,6 +16,20 @@ class IntroScreen extends StatefulWidget {
 class _IntroScreenState extends State<IntroScreen> {
   final CarouselController carouselController = CarouselController();
   int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    SharedPreferences.getInstance().then((prefs) {
+      if (prefs.getString('accessToken') != null) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

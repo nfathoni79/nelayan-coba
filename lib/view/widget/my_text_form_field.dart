@@ -13,6 +13,8 @@ class MyTextFormField extends StatelessWidget {
     this.maxLength,
     this.maxLines,
     this.textInputAction,
+    this.validator,
+    this.enabled,
     this.useLoginStyle = true,
   });
 
@@ -26,6 +28,8 @@ class MyTextFormField extends StatelessWidget {
   final int? maxLength;
   final int? maxLines;
   final TextInputAction? textInputAction;
+  final String? Function(String?)? validator;
+  final bool? enabled;
   final bool useLoginStyle;
 
   @override
@@ -62,6 +66,24 @@ class MyTextFormField extends StatelessWidget {
             width: 2,
           ),
         ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
         contentPadding: const EdgeInsets.all(16),
         label: labelWidget,
         hintText: hintText,
@@ -76,6 +98,8 @@ class MyTextFormField extends StatelessWidget {
       maxLength: maxLength,
       maxLines: maxLines,
       textInputAction: textInputAction,
+      validator: validator,
+      enabled: enabled,
     );
   }
 }
