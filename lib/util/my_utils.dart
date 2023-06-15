@@ -22,7 +22,9 @@ class MyUtils {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator()
+            Text('Memuat...'),
+            SizedBox(height: 8),
+            CircularProgressIndicator(),
           ],
         ),
         contentPadding: EdgeInsets.all(32),

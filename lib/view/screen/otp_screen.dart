@@ -76,23 +76,12 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  MyUtils.showLoading(context);
+                  if (widget.login) {
+                    _login(context, 'u${widget.phoneNumber}', '12345678');
+                    return;
+                  }
 
-                  FishonService.getToken('u${widget.phoneNumber}', '12345678').then((value) {
-                    Navigator.pop(context);
-                    
-                    // final SharedPreferences prefs = await SharedPreferences.getInstance();
-                    // await prefs.setString('accessToken', value);
-                    
-                    _prefs.setString('accessToken', value);
-
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                          (route) => false,
-                    );
-                  }).catchError((error) {
-                    Navigator.pop(context);
-                  });
+                  _register(context, widget.phoneNumber, widget.fullName!, widget.ktpNumber!);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange.shade300,
@@ -106,5 +95,39 @@ class _OtpScreenState extends State<OtpScreen> {
         ),
       ),
     );
+  }
+
+  void _login(BuildContext context, String username, String password) {
+    MyUtils.showLoading(context);
+
+    FishonService.getToken(username, password)
+        .then((value) {
+      Navigator.pop(context);
+
+      _prefs.setString('accessToken', value.accessToken);
+      _prefs.setString('refreshToken', value.refreshToken);
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+            builder: (context) => const HomeScreen()),
+            (route) => false,
+      );
+    }).catchError((error) {
+      Navigator.pop(context);
+    });
+  }
+
+  void _register(BuildContext context, String phone, String name, String ktp) {
+    MyUtils.showLoading(context);
+
+    FishonService.createUser(phone, name, ktp).then((value) {
+      Navigator.pop(context);
+
+      _login(context, 'u${widget.phoneNumber}', '12345678');
+    }).catchError((error) {
+      Navigator.pop(context);
+      debugPrint('error register');
+      debugPrint(error.toString());
+    });
   }
 }

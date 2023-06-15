@@ -28,33 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<ProfileMenu> profileMenuList = [
-      ProfileMenu(
-        id: 1,
-        title: 'Detail Profil',
-        iconData: Icons.person,
-        onTap: () {},
-      ),
-      ProfileMenu(
-        id: 1,
-        title: 'Ubah PIN',
-        iconData: Icons.lock,
-        onTap: () {},
-      ),
-      ProfileMenu(
-        id: 1,
-        title: 'Keluar',
-        iconData: Icons.logout,
-        onTap: () {
-          _prefs.remove('accessToken');
-
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const IntroScreen()),
-                (route) => false,
-          );
-        },
-      ),
-    ];
+    List<ProfileMenu> profileMenuList = _createProfileMenuList(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,14 +56,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     backgroundImage: AssetImage('assets/images/cat.jpg'),
                   ),
                 ),
-                // const Text(
-                //   'Agus Budi',
-                //   style: TextStyle(
-                //     fontWeight: FontWeight.bold,
-                //     fontSize: 16,
-                //   ),
-                // ),
-                // const Text('+628888123456'),
                 FutureBuilder<Profile>(
                   future: _futureProfile,
                   builder: (context, snapshot) {
@@ -135,5 +101,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  List<ProfileMenu> _createProfileMenuList(BuildContext context) {
+    return [
+      ProfileMenu(
+        id: 1,
+        title: 'Detail Profil',
+        iconData: Icons.person,
+        onTap: () {},
+      ),
+      ProfileMenu(
+        id: 1,
+        title: 'Ubah PIN',
+        iconData: Icons.lock,
+        onTap: () {},
+      ),
+      ProfileMenu(
+        id: 1,
+        title: 'Keluar',
+        iconData: Icons.logout,
+        onTap: () {
+          _prefs.remove('accessToken');
+          _prefs.remove('refreshToken');
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const IntroScreen()),
+                (route) => false,
+          );
+        },
+      ),
+    ];
   }
 }

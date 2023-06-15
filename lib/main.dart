@@ -3,13 +3,26 @@ import 'package:nelayan_coba/view/screen/home_screen.dart';
 import 'package:nelayan_coba/view/screen/intro_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
-  runApp(const MyApp());
+  Widget home = const HomeScreen();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  if (prefs.getString('accessToken') == null) {
+    home = const IntroScreen();
+  }
+
+  runApp(MyApp(home: home));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({
+    super.key,
+    required this.home,
+  });
+
+  final Widget home;
 
   // This widget is the root of your application.
   @override
@@ -39,7 +52,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const IntroScreen(),
+      home: home,
     );
   }
 }

@@ -3,18 +3,19 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:nelayan_coba/model/profile.dart';
+import 'package:nelayan_coba/model/user_token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FishonService {
-  // static const String baseUrl = 'http://10.0.2.2:8010';
-  // static const String clientId = 'ehQNss2iMgu69E5K8ddH1hqreQMjBwHwU16OPGxt';
-  // static const String clientSecret =
-  //     'YHPuAIyUPdzzyjZdZWxUm3l6kzBQY1b477XEu4vJmxJ3BiuH5CNdQ6aKKdCGCuom2S3Y1rKnaA8mP8IKTigfif9Ib8xVIQnGHbO4H4FV0NS0sQ3HF5bXx62vIeMchnTK';
-
-  static const String baseUrl = 'https://api-staging.perindo.id';
-  static const String clientId = '19fHyXuCHuSNw00wBUoSbxdYCUGFUz3qwtSrOOi1';
+  static const String baseUrl = 'http://10.0.2.2:8010';
+  static const String clientId = 'ehQNss2iMgu69E5K8ddH1hqreQMjBwHwU16OPGxt';
   static const String clientSecret =
-      'ArpwWiPRbdNfyB6XWnprHphQNG9gEQz9ILlbH0rXhRsJ8UgLZWkNEYxSzvjWqA4c0Zxu9oy56pkJmQ6LcIYfKTwZYqHmvZxPVGckQYBpXStyQ0oG4r5AXutNf0oJl7MB';
+      'YHPuAIyUPdzzyjZdZWxUm3l6kzBQY1b477XEu4vJmxJ3BiuH5CNdQ6aKKdCGCuom2S3Y1rKnaA8mP8IKTigfif9Ib8xVIQnGHbO4H4FV0NS0sQ3HF5bXx62vIeMchnTK';
+
+  // static const String baseUrl = 'https://api-staging.perindo.id';
+  // static const String clientId = '19fHyXuCHuSNw00wBUoSbxdYCUGFUz3qwtSrOOi1';
+  // static const String clientSecret =
+  //     'ArpwWiPRbdNfyB6XWnprHphQNG9gEQz9ILlbH0rXhRsJ8UgLZWkNEYxSzvjWqA4c0Zxu9oy56pkJmQ6LcIYfKTwZYqHmvZxPVGckQYBpXStyQ0oG4r5AXutNf0oJl7MB';
 
   static String basicAuth =
       'Basic ${base64Encode(utf8.encode('$clientId:$clientSecret'))}';
@@ -31,7 +32,7 @@ class FishonService {
     }
   }
 
-  static Future<String> getToken(String username, String password) async {
+  static Future<UserToken> getToken(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/o/token/'),
       headers: {
@@ -45,10 +46,40 @@ class FishonService {
     );
 
     if (response.statusCode == 200) {
-      Map<String, dynamic> body = jsonDecode(response.body);
-      return body['access_token'];
+      return UserToken.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to get token');
+    }
+  }
+
+  static Future<bool> createUser(String phone, String name, String ktp) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/user/register/'),
+      body: {
+        'client_id': clientId,
+        'secret_key': clientSecret,
+        'username': 'u$phone',
+        'email': 'u$phone@gmail.com',
+        'full_name': name,
+        'ktp_number': ktp,
+        'jenis_lembaga': 'Perorangan',
+        'lat': '0',
+        'lon': '0',
+        'kabupaten': '-',
+        'kecamatan': '-',
+        'kelurahan': '-',
+        'phone': phone,
+        'type_user': 'BASIC',
+        'wpp': 'null',
+        'password': '12345678',
+        'confirm_password': '12345678',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Failed to create user');
     }
   }
 

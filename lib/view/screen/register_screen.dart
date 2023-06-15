@@ -19,6 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _ktpController = TextEditingController();
 
   @override
   void initState() {
@@ -76,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
                       MyTextFormField(
+                        controller: _nameController,
                         labelText: 'Nama Lengkap',
                         keyboardType: TextInputType.name,
                         maxLength: 50,
@@ -85,12 +88,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
                       MyTextFormField(
+                        controller: _ktpController,
                         labelText: 'Nomor KTP',
                         keyboardType: TextInputType.number,
                         maxLength: 16,
                         textInputAction: TextInputAction.done,
-                        validator: (value) =>
-                            _validateEmpty(value, 'Isi nomor KTP Anda'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Isi nomor KTP Anda';
+                          }
+
+                          if (value.length < 16) {
+                            return 'Nomor KTP harus 16 digit';
+                          }
+
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -100,10 +113,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () {
                     if (!_formKey.currentState!.validate()) return;
 
-                    MyUtils.showUnavailableSnackbar(context);
-
-                    // Navigator.of(context).push(MaterialPageRoute(
-                    //     builder: (context) => const OtpScreen()));
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => OtpScreen(
+                              login: false,
+                              phoneNumber: widget.phoneNumber,
+                              fullName: _nameController.text,
+                              ktpNumber: _ktpController.text,
+                            )));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange.shade300,

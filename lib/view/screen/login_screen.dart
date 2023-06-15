@@ -95,25 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   if (!_formKey.currentState!.validate()) return;
 
-                  MyUtils.showLoading(context);
-
-                  FishonService.doesPhoneExist(_phoneController.text)
-                      .then((value) {
-                    Navigator.pop(context);
-
-                    if (value) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => OtpScreen(
-                                login: true,
-                                phoneNumber: _phoneController.text,
-                              )));
-                      return;
-                    }
-
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => RegisterScreen(
-                            phoneNumber: _phoneController.text)));
-                  });
+                  _checkIfPhoneExists(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange.shade300,
@@ -139,5 +121,26 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _checkIfPhoneExists(BuildContext context) {
+    MyUtils.showLoading(context);
+
+    FishonService.doesPhoneExist(_phoneController.text).then((value) {
+      Navigator.pop(context);
+
+      if (value) {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => OtpScreen(
+                  login: true,
+                  phoneNumber: _phoneController.text,
+                )));
+        return;
+      }
+
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              RegisterScreen(phoneNumber: _phoneController.text)));
+    });
   }
 }
