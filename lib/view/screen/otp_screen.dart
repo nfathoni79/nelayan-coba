@@ -121,9 +121,30 @@ class _OtpScreenState extends State<OtpScreen> {
     MyUtils.showLoading(context);
 
     FishonService.createUser(phone, name, ktp).then((value) {
-      Navigator.pop(context);
+      FishonService.getToken('u${widget.phoneNumber}', '12345678')
+          .then((value) {
 
-      _login(context, 'u${widget.phoneNumber}', '12345678');
+        _prefs.setString('accessToken', value.accessToken);
+        _prefs.setString('refreshToken', value.refreshToken);
+
+        FishonService.createSeaseedUser().then((value) {
+          Navigator.pop(context);
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+                builder: (context) => const HomeScreen()),
+                (route) => false,
+          );
+        }).catchError((error) {
+          Navigator.pop(context);
+          debugPrint('error create seaseed user');
+          debugPrint(error.toString());
+        });
+      }).catchError((error) {
+        Navigator.pop(context);
+        debugPrint('error get token');
+        debugPrint(error.toString());
+      });
     }).catchError((error) {
       Navigator.pop(context);
       debugPrint('error register');

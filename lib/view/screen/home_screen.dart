@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nelayan_coba/model/seaseed_user.dart';
+import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_strings.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/cart_screen.dart';
 import 'package:nelayan_coba/view/screen/mart_screen.dart';
 import 'package:nelayan_coba/view/screen/profile_screen.dart';
@@ -16,6 +19,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Future<SeaseedUser> _futureSeaseedUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureSeaseedUser = FishonService.getSeaseedUser();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,23 +128,49 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         child: Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Saldo Wallet',
                     style: TextStyle(
                         // color: Colors.blue.shade50,
                         ),
                   ),
-                  Text(
-                    '1.635.500',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      // color: Colors.blue.shade50,
-                    ),
+                  // Text(
+                  //   '1.635.500',
+                  //   style: TextStyle(
+                  //     fontWeight: FontWeight.bold,
+                  //     fontSize: 20,
+                  //     // color: Colors.blue.shade50,
+                  //   ),
+                  // ),
+                  FutureBuilder<SeaseedUser>(
+                    future: _futureSeaseedUser,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Text(
+                          MyUtils.formatNumber(snapshot.data!.balance),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            // color: Colors.blue.shade50,
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return const Text(
+                          '-',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            // color: Colors.blue.shade50,
+                          ),
+                        );
+                      }
+
+                      return const CircularProgressIndicator();
+                    },
                   ),
                 ],
               ),

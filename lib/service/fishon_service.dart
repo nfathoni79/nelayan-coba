@@ -3,19 +3,20 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:nelayan_coba/model/profile.dart';
+import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/user_token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FishonService {
-  static const String baseUrl = 'http://10.0.2.2:8010';
-  static const String clientId = 'ehQNss2iMgu69E5K8ddH1hqreQMjBwHwU16OPGxt';
-  static const String clientSecret =
-      'YHPuAIyUPdzzyjZdZWxUm3l6kzBQY1b477XEu4vJmxJ3BiuH5CNdQ6aKKdCGCuom2S3Y1rKnaA8mP8IKTigfif9Ib8xVIQnGHbO4H4FV0NS0sQ3HF5bXx62vIeMchnTK';
-
-  // static const String baseUrl = 'https://api-staging.perindo.id';
-  // static const String clientId = '19fHyXuCHuSNw00wBUoSbxdYCUGFUz3qwtSrOOi1';
+  // static const String baseUrl = 'http://10.0.2.2:8010';
+  // static const String clientId = 'ehQNss2iMgu69E5K8ddH1hqreQMjBwHwU16OPGxt';
   // static const String clientSecret =
-  //     'ArpwWiPRbdNfyB6XWnprHphQNG9gEQz9ILlbH0rXhRsJ8UgLZWkNEYxSzvjWqA4c0Zxu9oy56pkJmQ6LcIYfKTwZYqHmvZxPVGckQYBpXStyQ0oG4r5AXutNf0oJl7MB';
+  //     'YHPuAIyUPdzzyjZdZWxUm3l6kzBQY1b477XEu4vJmxJ3BiuH5CNdQ6aKKdCGCuom2S3Y1rKnaA8mP8IKTigfif9Ib8xVIQnGHbO4H4FV0NS0sQ3HF5bXx62vIeMchnTK';
+
+  static const String baseUrl = 'https://api-staging.perindo.id';
+  static const String clientId = '19fHyXuCHuSNw00wBUoSbxdYCUGFUz3qwtSrOOi1';
+  static const String clientSecret =
+      'ArpwWiPRbdNfyB6XWnprHphQNG9gEQz9ILlbH0rXhRsJ8UgLZWkNEYxSzvjWqA4c0Zxu9oy56pkJmQ6LcIYfKTwZYqHmvZxPVGckQYBpXStyQ0oG4r5AXutNf0oJl7MB';
 
   static String basicAuth =
       'Basic ${base64Encode(utf8.encode('$clientId:$clientSecret'))}';
@@ -104,6 +105,52 @@ class FishonService {
       return Profile.fromJson(body['data']['profil']);
     } else {
       throw Exception('Failed to get profile');
+    }
+  }
+
+  static Future<bool> createSeaseedUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to create Seaseed user');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/seaseed/users/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Failed to create Seaseed user');
+    }
+  }
+
+  static Future<SeaseedUser> getSeaseedUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get Seaseed user');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/seaseed/users/current'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+
+      return SeaseedUser.fromJson(body['seaseed_user']);
+    } else {
+      throw Exception('Failed to get Seaseed user');
     }
   }
 }
