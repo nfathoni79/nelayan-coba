@@ -14,6 +14,7 @@ class WithdrawalScreen extends StatefulWidget {
 class _WithdrawalScreenState extends State<WithdrawalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  final _emailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -35,24 +36,43 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                     const SizedBox(height: 8),
                     Form(
                       key: _formKey,
-                      child: MyTextFormField(
-                        controller: _amountController,
-                        labelText: 'Nominal Tarik',
-                        suffixText: 'IDR',
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        useLoginStyle: false,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Isi nominal penarikan';
-                          }
+                      child: Column(
+                        children: [
+                          MyTextFormField(
+                            controller: _amountController,
+                            labelText: 'Nominal Tarik',
+                            suffixText: 'IDR',
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.next,
+                            useLoginStyle: false,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Isi nominal penarikan';
+                              }
 
-                          if (int.parse(value) < 10000) {
-                            return 'Nominal minimal 10.000';
-                          }
+                              if (int.parse(value) < 10000) {
+                                return 'Nominal minimal 10.000';
+                              }
 
-                          return null;
-                        },
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          MyTextFormField(
+                            controller: _emailController,
+                            labelText: 'Email',
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.done,
+                            useLoginStyle: false,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Isi email untuk pengiriman kode rahasia';
+                              }
+
+                              return null;
+                            },
+                          )
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -64,6 +84,13 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
                         Text('10.000 IDR'),
                       ],
                     ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Biaya layanan'),
+                        Text('1.000 IDR'),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -72,7 +99,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
 
-                _withdraw(context, int.parse(_amountController.text));
+                _withdraw(context, int.parse(_amountController.text), _emailController.text);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
@@ -87,10 +114,10 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
     );
   }
 
-  void _withdraw(BuildContext context, int amount) {
+  void _withdraw(BuildContext context, int amount, String email) {
     MyUtils.showLoading(context);
 
-    FishonService.createWithdrawal(amount).then((value) {
+    FishonService.createWithdrawal(amount, email).then((value) {
       Navigator.pop(context);
 
       showDialog(

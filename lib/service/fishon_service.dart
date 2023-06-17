@@ -208,7 +208,7 @@ class FishonService {
     }
   }
 
-  static Future<Withdrawal> createWithdrawal(int amount) async {
+  static Future<Withdrawal> createWithdrawal(int amount, String email) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('accessToken');
 
@@ -223,6 +223,7 @@ class FishonService {
       },
       body: {
         'amount': '$amount',
+        'email': email,
       },
     );
 
