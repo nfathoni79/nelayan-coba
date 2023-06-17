@@ -22,7 +22,7 @@ class _TransferScreenState extends State<TransferScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: const Text('Transfer'),
+        title: const Text('Kirim'),
       ),
       body: Container(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -64,7 +64,7 @@ class _TransferScreenState extends State<TransferScreen> {
                     ),
                     const SizedBox(height: 16),
                     const MyTextFormField(
-                      labelText: 'Nominal Transfer',
+                      labelText: 'Nominal Kirim',
                       suffixText: 'IDR',
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
@@ -88,7 +88,7 @@ class _TransferScreenState extends State<TransferScreen> {
                 foregroundColor: Colors.blue.shade50,
                 elevation: 2,
               ),
-              child: const Text('Transfer'),
+              child: const Text('Kirim'),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:nelayan_coba/model/deposit.dart';
 import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/user_token.dart';
@@ -151,6 +152,32 @@ class FishonService {
       return SeaseedUser.fromJson(body['seaseed_user']);
     } else {
       throw Exception('Failed to get Seaseed user');
+    }
+  }
+
+  static Future<Deposit> createDeposit(int amount) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to create Deposit');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/seaseed/deposits/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+      body: {
+        'amount': '$amount',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      return Deposit.fromJson(body['deposit']);
+    } else {
+      throw Exception('Failed to create Deposit');
     }
   }
 }

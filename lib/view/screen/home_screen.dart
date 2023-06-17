@@ -4,6 +4,7 @@ import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_strings.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/cart_screen.dart';
+import 'package:nelayan_coba/view/screen/deposit_screen.dart';
 import 'package:nelayan_coba/view/screen/mart_screen.dart';
 import 'package:nelayan_coba/view/screen/profile_screen.dart';
 import 'package:nelayan_coba/view/screen/sell_screen.dart';
@@ -126,77 +127,102 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 2,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Saldo Wallet',
-                    style: TextStyle(
-                        // color: Colors.blue.shade50,
+            const Text(
+              'Saldo Wallet',
+              style: TextStyle(
+                  // color: Colors.blue.shade50,
+                  ),
+            ),
+            Row(
+              children: [
+                FutureBuilder<SeaseedUser>(
+                  future: _futureSeaseedUser,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Text(
+                        MyUtils.formatNumber(snapshot.data!.balance),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          // color: Colors.blue.shade50,
                         ),
-                  ),
-                  // Text(
-                  //   '1.635.500',
-                  //   style: TextStyle(
-                  //     fontWeight: FontWeight.bold,
-                  //     fontSize: 20,
-                  //     // color: Colors.blue.shade50,
-                  //   ),
-                  // ),
-                  FutureBuilder<SeaseedUser>(
-                    future: _futureSeaseedUser,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Text(
-                          MyUtils.formatNumber(snapshot.data!.balance),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            // color: Colors.blue.shade50,
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return const Text(
-                          '-',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            // color: Colors.blue.shade50,
-                          ),
-                        );
-                      }
+                      );
+                    } else if (snapshot.hasError) {
+                      return const Text(
+                        '-',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          // color: Colors.blue.shade50,
+                        ),
+                      );
+                    }
 
-                      return const CircularProgressIndicator();
-                    },
+                    return const CircularProgressIndicator();
+                  },
+                ),
+                IconButton(
+                  onPressed: () => setState(() {
+                    _futureSeaseedUser = FishonService.getSeaseedUser();
+                  }),
+                  icon: Icon(
+                    Icons.refresh,
+                    color: Colors.blue.shade900,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            MenuButton(
-              iconData: Icons.add_circle_outline,
-              title: 'Deposit',
-              // color: Colors.blue.shade50,
-              // splashColor: Colors.blue,
-              onTap: () => _showUnavailableSnackbar(context),
-            ),
-            MenuButton(
-              iconData: Icons.arrow_circle_right_outlined,
-              title: 'Transfer',
-              // color: Colors.blue.shade50,
-              // splashColor: Colors.blue,
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const TransferScreen(),
-              )),
-            ),
-            MenuButton(
-              iconData: Icons.qr_code_scanner,
-              title: 'Bayar',
-              // color: Colors.blue.shade50,
-              // splashColor: Colors.blue,
-              onTap: () => _showUnavailableSnackbar(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                MenuButton(
+                  iconData: Icons.add_circle_outline,
+                  title: 'Setor',
+                  color: Colors.blue.shade900,
+                  // color: Colors.blue.shade50,
+                  // splashColor: Colors.blue,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const DepositScreen(),
+                  )),
+                ),
+                MenuButton(
+                  iconData: Icons.arrow_circle_right_outlined,
+                  title: 'Kirim',
+                  color: Colors.blue.shade900,
+                  // color: Colors.blue.shade50,
+                  // splashColor: Colors.blue,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const TransferScreen(),
+                  )),
+                ),
+                MenuButton(
+                  iconData: Icons.arrow_circle_down_outlined,
+                  title: 'Tarik',
+                  color: Colors.blue.shade900,
+                  // color: Colors.blue.shade50,
+                  // splashColor: Colors.blue,
+                  onTap: () => _showUnavailableSnackbar(context),
+                ),
+                MenuButton(
+                  iconData: Icons.qr_code_scanner,
+                  title: 'Bayar',
+                  color: Colors.blue.shade900,
+                  // color: Colors.blue.shade50,
+                  // splashColor: Colors.blue,
+                  onTap: () => _showUnavailableSnackbar(context),
+                ),
+                MenuButton(
+                  iconData: Icons.history,
+                  title: 'Riwayat',
+                  color: Colors.blue.shade900,
+                  // color: Colors.blue.shade50,
+                  // splashColor: Colors.blue,
+                  onTap: () => _showUnavailableSnackbar(context),
+                ),
+              ],
             ),
           ],
         ),
