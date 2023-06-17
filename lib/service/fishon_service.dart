@@ -6,6 +6,7 @@ import 'package:nelayan_coba/model/deposit.dart';
 import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/user_token.dart';
+import 'package:nelayan_coba/model/withdrawal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FishonService {
@@ -178,6 +179,32 @@ class FishonService {
       return Deposit.fromJson(body['deposit']);
     } else {
       throw Exception('Failed to create Deposit');
+    }
+  }
+
+  static Future<Withdrawal> createWithdrawal(int amount) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to create Withdrawal');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/seaseed/withdrawals/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+      body: {
+        'amount': '$amount',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      return Withdrawal.fromJson(body['withdrawal']);
+    } else {
+      throw Exception('Failed to create Withdrawal');
     }
   }
 }

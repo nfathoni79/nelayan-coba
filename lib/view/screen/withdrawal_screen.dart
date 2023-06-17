@@ -4,14 +4,14 @@ import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DepositScreen extends StatefulWidget {
-  const DepositScreen({super.key});
+class WithdrawalScreen extends StatefulWidget {
+  const WithdrawalScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _DepositScreenState();
+  State<StatefulWidget> createState() => _WithdrawalScreenState();
 }
 
-class _DepositScreenState extends State<DepositScreen> {
+class _WithdrawalScreenState extends State<WithdrawalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
 
@@ -21,7 +21,7 @@ class _DepositScreenState extends State<DepositScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: const Text('Setor'),
+        title: const Text('Tarik'),
       ),
       body: Container(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -37,18 +37,18 @@ class _DepositScreenState extends State<DepositScreen> {
                       key: _formKey,
                       child: MyTextFormField(
                         controller: _amountController,
-                        labelText: 'Nominal Setor',
+                        labelText: 'Nominal Tarik',
                         suffixText: 'IDR',
                         keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.done,
                         useLoginStyle: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Isi nominal penyetoran';
+                            return 'Isi nominal penarikan';
                           }
 
-                          if (int.parse(value) <= 1000) {
-                            return 'Nominal harus lebih dari biaya layanan';
+                          if (int.parse(value) < 10000) {
+                            return 'Nominal minimal 10.000';
                           }
 
                           return null;
@@ -60,8 +60,8 @@ class _DepositScreenState extends State<DepositScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Biaya layanan'),
-                        Text('1.000 IDR'),
+                        Text('Minimal penarikan'),
+                        Text('10.000 IDR'),
                       ],
                     ),
                   ],
@@ -72,14 +72,14 @@ class _DepositScreenState extends State<DepositScreen> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
 
-                _deposit(context, int.parse(_amountController.text));
+                _withdraw(context, int.parse(_amountController.text));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.blue.shade50,
                 elevation: 2,
               ),
-              child: const Text('Setor'),
+              child: const Text('Tarik'),
             ),
           ],
         ),
@@ -87,24 +87,24 @@ class _DepositScreenState extends State<DepositScreen> {
     );
   }
 
-  void _deposit(BuildContext context, int amount) {
+  void _withdraw(BuildContext context, int amount) {
     MyUtils.showLoading(context);
 
-    FishonService.createDeposit(amount).then((value) {
+    FishonService.createWithdrawal(amount).then((value) {
       Navigator.pop(context);
 
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Menunggu Pembayaran'),
+          title: const Text('Menunggu Penarikan'),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Lakukan pembayaran pada tautan berikut:'),
+              const Text('Lakukan penarikan pada tautan berikut:'),
               InkWell(
                 onTap: () async =>
-                    await launchUrl(Uri.parse(value.paymentLink)),
+                await launchUrl(Uri.parse(value.paymentLink)),
                 child: Text(
                   value.paymentLink,
                   style: TextStyle(
@@ -121,7 +121,7 @@ class _DepositScreenState extends State<DepositScreen> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Saya sudah melakukan pembayaran'),
+              child: const Text('Saya sudah melakukan penarikan'),
             ),
           ],
         ),
@@ -129,8 +129,25 @@ class _DepositScreenState extends State<DepositScreen> {
       );
     }).catchError((error) {
       Navigator.pop(context);
-      debugPrint('deposit error');
+      debugPrint('withdraw error');
       debugPrint(error.toString());
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Gagal'),
+          content: const Text('Gagal melakukan penarikan. Pastikan saldo Anda cukup'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Tutup'),
+            ),
+          ],
+        ),
+        barrierDismissible: true,
+      );
     });
   }
 }
