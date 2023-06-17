@@ -1,7 +1,8 @@
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:nelayan_coba/model/mart_repo.dart';
+import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/wallet.dart';
+import 'package:nelayan_coba/service/fishon_service.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
 
@@ -13,8 +14,9 @@ class TransferScreen extends StatefulWidget {
 }
 
 class _TransferScreenState extends State<TransferScreen> {
-  int _walletId = 1;
-  final List<Wallet> _walletList = MartRepo.walletList;
+  final _formKey = GlobalKey<FormState>();
+  String? _walletUuid;
+  final _amountController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +36,50 @@ class _TransferScreenState extends State<TransferScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Saldo Anda'),
-                        Text('1.635.500 IDR'),
-                      ],
+                    const SizedBox(height: 16),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          MyDropdown<Wallet>(
+                            items: const [],
+                            asyncItems: (filter) => _getWallets(),
+                            itemAsString: (wallet) => wallet.userFullName,
+                            labelText: 'Wallet Tujuan',
+                            prefixIcon: const Icon(Icons.wallet),
+                            onChanged: (wallet) => {
+                              if (wallet is Wallet)
+                                {setState(() => _walletUuid = wallet.uuid)}
+                            },
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Pilih wallet tujuan';
+                              }
+
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          MyTextFormField(
+                            controller: _amountController,
+                            labelText: 'Nominal Kirim',
+                            suffixText: 'IDR',
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.done,
+                            useLoginStyle: false,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Isi nominal kirim';
+                              }
+
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 8),
+                    const Divider(),
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -48,41 +87,16 @@ class _TransferScreenState extends State<TransferScreen> {
                         Text('1.000 IDR'),
                       ],
                     ),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    MyDropdown<Wallet>(
-                      items: _walletList,
-                      itemAsString: (wallet) => wallet.user,
-                      compareFn: (a, b) => a.id == b.id,
-                      labelText: 'Wallet Tujuan',
-                      prefixIcon: const Icon(Icons.wallet),
-                      selectedItem: _walletList[_walletId - 1],
-                      onChanged: (wallet) => {
-                        if (wallet is Wallet)
-                          {setState(() => _walletId = wallet.id)}
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const MyTextFormField(
-                      labelText: 'Nominal Kirim',
-                      suffixText: 'IDR',
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      useLoginStyle: false,
-                    ),
-                    const SizedBox(height: 16),
-                    const MyTextFormField(
-                      labelText: 'Keterangan (opsional)',
-                      keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.done,
-                      useLoginStyle: false,
-                    ),
                   ],
                 ),
               ),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (!_formKey.currentState!.validate()) return;
+
+                _transfer(context, _walletUuid!, int.parse(_amountController.text));
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.blue.shade50,
@@ -96,40 +110,61 @@ class _TransferScreenState extends State<TransferScreen> {
     );
   }
 
-  Widget _buildWalletDropdown() {
-    return DropdownSearch<Wallet>(
-      popupProps: PopupProps.menu(
-        showSelectedItems: true,
-        showSearchBox: true,
-        searchFieldProps: TextFieldProps(
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.search),
-          ),
+  Future<List<Wallet>> _getWallets() async {
+    List<SeaseedUser> users = await FishonService.getOtherSeaseedUsers();
+
+    return List<Wallet>.from(users.map((user) {
+      return Wallet(
+        id: user.id,
+        uuid: user.walletUuid,
+        userFullName: user.userFullName,
+      );
+    }));
+  }
+
+  void _transfer(BuildContext context, String receiverWallet, int amount) {
+    MyUtils.showLoading(context);
+
+    FishonService.createTransfer(receiverWallet, amount).then((value) {
+      Navigator.pop(context);
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sukses'),
+          content: const Text('Berhasil melakukan pengiriman.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Tutup'),
+            ),
+          ],
         ),
-        itemBuilder: (context, wallet, isSelected) => Container(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(wallet.user),
-              Text(wallet.id.toString()),
-            ],
-          ),
+        barrierDismissible: true,
+      );
+    }).catchError((error) {
+      Navigator.pop(context);
+      debugPrint('transfer error');
+      debugPrint(error.toString());
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Gagal'),
+          content: const Text('Gagal melakukan pengiriman. Pastikan saldo Anda cukup'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Tutup'),
+            ),
+          ],
         ),
-      ),
-      // items: ['Brazil', 'Italia (Disabled)', 'Tunisia', 'Canada'],
-      items: _walletList,
-      itemAsString: (w) => w.user,
-      compareFn: (a, b) => a.id == b.id,
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.wallet),
-          labelText: 'Wallet Tujuan',
-        ),
-      ),
-      onChanged: (w) => debugPrint('debug: $w'),
-      selectedItem: _walletList[0],
-    );
+        barrierDismissible: true,
+      );
+    });
   }
 }

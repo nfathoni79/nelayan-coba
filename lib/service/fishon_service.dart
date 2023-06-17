@@ -141,7 +141,7 @@ class FishonService {
     }
 
     final response = await http.get(
-      Uri.parse('$baseUrl/api/seaseed/users/current'),
+      Uri.parse('$baseUrl/api/seaseed/users/current/'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $token',
       },
@@ -153,6 +153,32 @@ class FishonService {
       return SeaseedUser.fromJson(body['seaseed_user']);
     } else {
       throw Exception('Failed to get Seaseed user');
+    }
+  }
+
+  static Future<List<SeaseedUser>> getOtherSeaseedUsers() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get other Seaseed users');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/seaseed/users/others/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      List users = body['seaseed_users'];
+
+      return List<SeaseedUser>.from(
+          users.map((user) => SeaseedUser.fromJson(user)));
+    } else {
+      throw Exception('Failed to get other Seaseed users');
     }
   }
 
@@ -205,6 +231,32 @@ class FishonService {
       return Withdrawal.fromJson(body['withdrawal']);
     } else {
       throw Exception('Failed to create Withdrawal');
+    }
+  }
+
+  static Future<bool> createTransfer(String receiverWallet, int amount) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to create Transfer');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/seaseed/transfers/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+      body: {
+        'receiver_wallet_id': receiverWallet,
+        'amount': '$amount',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Failed to create Transfer');
     }
   }
 }
