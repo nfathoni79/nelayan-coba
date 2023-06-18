@@ -23,6 +23,7 @@ class MenuCard extends StatelessWidget {
           aspectRatio: 1,
           child: Card(
             color: Colors.blue.shade800,
+            elevation: 2,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               splashColor: Colors.blue,
