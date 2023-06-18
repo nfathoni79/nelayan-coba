@@ -166,9 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 IconButton(
-                  onPressed: () => setState(() {
-                    _futureSeaseedUser = FishonService.getSeaseedUser();
-                  }),
+                  onPressed: () => _updateFutureSeaseedUser(),
                   icon: Icon(
                     Icons.refresh,
                     color: Colors.blue.shade900,
@@ -185,9 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade900,
                   // color: Colors.blue.shade50,
                   // splashColor: Colors.blue,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const DepositScreen(),
-                  )),
+                  onTap: () => Navigator.of(context)
+                      .push(MaterialPageRoute(
+                        builder: (context) => const DepositScreen(),
+                      ))
+                      .then((value) => _updateFutureSeaseedUser()),
                 ),
                 MenuButton(
                   iconData: Icons.arrow_circle_right_outlined,
@@ -195,9 +195,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade900,
                   // color: Colors.blue.shade50,
                   // splashColor: Colors.blue,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const TransferScreen(),
-                  )),
+                  onTap: () => Navigator.of(context)
+                      .push(MaterialPageRoute(
+                        builder: (context) => const TransferScreen(),
+                      ))
+                      .then((value) => _updateFutureSeaseedUser()),
                 ),
                 MenuButton(
                   iconData: Icons.arrow_circle_down_outlined,
@@ -205,9 +207,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade900,
                   // color: Colors.blue.shade50,
                   // splashColor: Colors.blue,
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const WithdrawalScreen(),
-                  )),
+                  onTap: () => Navigator.of(context)
+                      .push(MaterialPageRoute(
+                        builder: (context) => const WithdrawalScreen(),
+                      ))
+                      .then((value) => _updateFutureSeaseedUser()),
                 ),
                 MenuButton(
                   iconData: Icons.qr_code_scanner,
@@ -231,5 +235,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _updateFutureSeaseedUser() {
+    setState(() {
+      _futureSeaseedUser = FishonService.getSeaseedUser();
+    });
   }
 }
