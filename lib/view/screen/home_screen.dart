@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildBalanceCard(),
             const SizedBox(height: 16),
             Expanded(
-              child: Padding(
+              child: Container(
                 padding: const EdgeInsets.only(left: 16, right: 16),
                 child: GridView.count(
                   crossAxisCount: 2,

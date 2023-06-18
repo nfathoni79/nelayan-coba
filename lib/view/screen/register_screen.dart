@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:nelayan_coba/util/my_utils.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nelayan_coba/view/screen/otp_screen.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
 
@@ -21,6 +24,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
   final _ktpController = TextEditingController();
+  File? _ktpImage;
+  File? _selfieImage;
 
   @override
   void initState() {
@@ -109,6 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _buildKtpImageInput(),
+                const SizedBox(height: 8),
+                _buildSelfieImageInput(),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
                     if (!_formKey.currentState!.validate()) return;
@@ -128,11 +137,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   child: const Text('Daftar'),
                 ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildKtpImageInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('Foto KTP'),
+        _ktpImage == null
+            ? ElevatedButton(
+                onPressed: () => _pickKtpImage(),
+                child: const Text('Pilih foto'),
+              )
+            : const SizedBox.shrink(),
+        _ktpImage != null
+            ? InkWell(
+                onTap: () => _pickKtpImage(),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
+                  child: Image.file(_ktpImage!),
+                ),
+              )
+            : const SizedBox.shrink(),
+      ],
+    );
+  }
+
+  Widget _buildSelfieImageInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('Foto Selfie'),
+        _selfieImage == null
+            ? ElevatedButton(
+                onPressed: () => _pickSelfieImage(),
+                child: const Text('Pilih foto'),
+              )
+            : const SizedBox.shrink(),
+        _selfieImage != null
+            ? InkWell(
+                onTap: () => _pickSelfieImage(),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
+                  child: Image.file(_selfieImage!),
+                ),
+              )
+            : const SizedBox.shrink(),
+      ],
     );
   }
 
@@ -142,5 +200,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     return null;
+  }
+
+  void _pickKtpImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      setState(() => _ktpImage = File(image.path));
+    } on PlatformException catch (e) {
+      debugPrint('Failed to pick image: $e');
+    }
+  }
+
+  void _pickSelfieImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      setState(() => _selfieImage = File(image.path));
+    } on PlatformException catch (e) {
+      debugPrint('Failed to pick image: $e');
+    }
   }
 }
