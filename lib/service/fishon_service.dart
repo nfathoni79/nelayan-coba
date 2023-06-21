@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:nelayan_coba/model/deposit.dart';
 import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
+import 'package:nelayan_coba/model/transaction.dart';
 import 'package:nelayan_coba/model/user_token.dart';
 import 'package:nelayan_coba/model/withdrawal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -309,6 +310,35 @@ class FishonService {
       return FishonService.createTransfer(receiverWallet, amount);
     } else {
       throw Exception('Failed to create Transfer');
+    }
+  }
+
+  static Future<List<Transaction>> getTransactions() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get transactions');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/seaseed/transactions/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      List transactions = body['transactions'];
+
+      return List<Transaction>.from(
+          transactions.map((trx) => Transaction.fromJson(trx)));
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getTransactions();
+    } else {
+      throw Exception('Failed to get transactions');
     }
   }
 }

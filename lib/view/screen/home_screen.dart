@@ -8,6 +8,7 @@ import 'package:nelayan_coba/view/screen/deposit_screen.dart';
 import 'package:nelayan_coba/view/screen/mart_screen.dart';
 import 'package:nelayan_coba/view/screen/profile_screen.dart';
 import 'package:nelayan_coba/view/screen/sell_screen.dart';
+import 'package:nelayan_coba/view/screen/transactions_screen.dart';
 import 'package:nelayan_coba/view/screen/transfer_screen.dart';
 import 'package:nelayan_coba/view/screen/withdrawal_screen.dart';
 import 'package:nelayan_coba/view/widget/menu_button.dart';
@@ -227,7 +228,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blue.shade900,
                   // color: Colors.blue.shade50,
                   // splashColor: Colors.blue,
-                  onTap: () => _showUnavailableSnackbar(context),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const TransactionsScreen(),
+                  )),
                 ),
               ],
             ),
