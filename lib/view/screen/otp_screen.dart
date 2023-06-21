@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nelayan_coba/main.dart';
 import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/home_screen.dart';
-import 'package:nelayan_coba/view/screen/register_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({
@@ -25,16 +22,6 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  late SharedPreferences _prefs;
-
-  @override
-  void initState() {
-    super.initState();
-    SharedPreferences.getInstance().then((prefs) {
-      setState(() => _prefs = prefs);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,9 +91,6 @@ class _OtpScreenState extends State<OtpScreen> {
         .then((value) {
       Navigator.pop(context);
 
-      _prefs.setString('accessToken', value.accessToken);
-      _prefs.setString('refreshToken', value.refreshToken);
-
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
             builder: (context) => const HomeScreen()),
@@ -123,10 +107,6 @@ class _OtpScreenState extends State<OtpScreen> {
     FishonService.createUser(phone, name, ktp).then((value) {
       FishonService.getToken('u${widget.phoneNumber}', '12345678')
           .then((value) {
-
-        _prefs.setString('accessToken', value.accessToken);
-        _prefs.setString('refreshToken', value.refreshToken);
-
         FishonService.createSeaseedUser().then((value) {
           Navigator.pop(context);
 

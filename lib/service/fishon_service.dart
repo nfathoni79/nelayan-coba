@@ -49,9 +49,39 @@ class FishonService {
     );
 
     if (response.statusCode == 200) {
-      return UserToken.fromJson(jsonDecode(response.body));
+      UserToken token = UserToken.fromJson(jsonDecode(response.body));
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('accessToken', token.accessToken);
+      prefs.setString('refreshToken', token.refreshToken);
+
+      return token;
     } else {
       throw Exception('Failed to get token');
+    }
+  }
+
+  static Future<UserToken> refreshToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? refreshToken = prefs.getString('refreshToken');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/o/token/'),
+      body: {
+        'client_id': clientId,
+        'client_secret': clientSecret,
+        'refresh_token': refreshToken,
+        'grant_type': 'refresh_token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      UserToken token = UserToken.fromJson(jsonDecode(response.body));
+      prefs.setString('accessToken', token.accessToken);
+      prefs.setString('refreshToken', token.refreshToken);
+
+      return token;
+    } else {
+      throw Exception('Failed to get new token');
     }
   }
 
@@ -105,6 +135,9 @@ class FishonService {
       Map<String, dynamic> body = jsonDecode(response.body);
 
       return Profile.fromJson(body['data']['profil']);
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getProfile();
     } else {
       throw Exception('Failed to get profile');
     }
@@ -127,6 +160,9 @@ class FishonService {
 
     if (response.statusCode == 201) {
       return true;
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.createSeaseedUser();
     } else {
       throw Exception('Failed to create Seaseed user');
     }
@@ -151,6 +187,9 @@ class FishonService {
       Map<String, dynamic> body = jsonDecode(response.body);
 
       return SeaseedUser.fromJson(body['seaseed_user']);
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getSeaseedUser();
     } else {
       throw Exception('Failed to get Seaseed user');
     }
@@ -177,6 +216,9 @@ class FishonService {
 
       return List<SeaseedUser>.from(
           users.map((user) => SeaseedUser.fromJson(user)));
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getOtherSeaseedUsers();
     } else {
       throw Exception('Failed to get other Seaseed users');
     }
@@ -203,6 +245,9 @@ class FishonService {
     if (response.statusCode == 201) {
       Map<String, dynamic> body = jsonDecode(response.body);
       return Deposit.fromJson(body['deposit']);
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.createDeposit(amount);
     } else {
       throw Exception('Failed to create Deposit');
     }
@@ -230,6 +275,9 @@ class FishonService {
     if (response.statusCode == 201) {
       Map<String, dynamic> body = jsonDecode(response.body);
       return Withdrawal.fromJson(body['withdrawal']);
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.createWithdrawal(amount, email);
     } else {
       throw Exception('Failed to create Withdrawal');
     }
@@ -256,6 +304,9 @@ class FishonService {
 
     if (response.statusCode == 201) {
       return true;
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.createTransfer(receiverWallet, amount);
     } else {
       throw Exception('Failed to create Transfer');
     }

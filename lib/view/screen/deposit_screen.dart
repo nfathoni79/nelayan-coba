@@ -120,6 +120,7 @@ class _DepositScreenState extends State<DepositScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: const Text('Saya sudah melakukan pembayaran'),
             ),

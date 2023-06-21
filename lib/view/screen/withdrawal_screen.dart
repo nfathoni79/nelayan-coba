@@ -147,6 +147,7 @@ class _WithdrawalScreenState extends State<WithdrawalScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: const Text('Saya sudah melakukan penarikan'),
             ),

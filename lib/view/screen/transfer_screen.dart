@@ -137,6 +137,7 @@ class _TransferScreenState extends State<TransferScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: const Text('Tutup'),
             ),
