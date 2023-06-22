@@ -9,18 +9,23 @@ class TransactionCard extends StatelessWidget {
     required this.date,
     required this.type,
     required this.amount,
+    required this.fromUser,
     this.toUser,
+    required this.currentUser,
   });
 
   final DateTime date;
   final int type;
   final int amount;
+  final SeaseedUser fromUser;
   final SeaseedUser? toUser;
+  final SeaseedUser currentUser;
 
   @override
   Widget build(BuildContext context) {
     String typeText = '';
     String signedAmount = '';
+    String? transferDescription;
 
     switch (type) {
       case 0:
@@ -33,7 +38,15 @@ class TransactionCard extends StatelessWidget {
         break;
       case 2:
         typeText = 'Kirim';
-        signedAmount = MyUtils.formatNumber(amount * -1);
+
+        if (fromUser.id == currentUser.id) {
+          signedAmount = MyUtils.formatNumber(amount * -1);
+          transferDescription = 'Ke ${toUser!.userFullName}';
+          break;
+        }
+
+        signedAmount = '+${MyUtils.formatNumber(amount)}';
+        transferDescription = 'Dari ${fromUser.userFullName}';
         break;
     }
 
@@ -55,7 +68,7 @@ class TransactionCard extends StatelessWidget {
               ],
             ),
             const Divider(),
-            toUser != null ? Text(toUser!.userFullName) : const SizedBox.shrink(),
+            transferDescription != null ? Text(transferDescription) : const SizedBox.shrink(),
             Text(
               '$signedAmount IDR',
               style: const TextStyle(
