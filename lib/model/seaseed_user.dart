@@ -12,7 +12,7 @@ class SeaseedUser {
       id: json['id'],
       userUuid: json['user_uuid'],
       walletUuid: json['wallet_uuid'],
-      userFullName: json['user']['full_name'],
+      userFullName: json['full_name'],
       balance: json['balance'] ?? 0,
     );
   }

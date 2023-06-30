@@ -1,6 +1,6 @@
 class Withdrawal {
   const Withdrawal({
-    required this.id,
+    required this.uuid,
     required this.createdAt,
     required this.expiredAt,
     required this.status,
@@ -9,7 +9,7 @@ class Withdrawal {
 
   factory Withdrawal.fromJson(Map<String, dynamic> json) {
     return Withdrawal(
-      id: json['id'],
+      uuid: json['uuid'],
       createdAt: DateTime.parse(json['created_at']),
       expiredAt: DateTime.parse(json['expired_at']),
       status: json['status'],
@@ -17,7 +17,7 @@ class Withdrawal {
     );
   }
 
-  final String id;
+  final String uuid;
   final DateTime createdAt;
   final DateTime expiredAt;
   final String status;

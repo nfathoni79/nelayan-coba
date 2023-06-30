@@ -187,7 +187,7 @@ class FishonService {
     if (response.statusCode == 200) {
       Map<String, dynamic> body = jsonDecode(response.body);
 
-      return SeaseedUser.fromJson(body['seaseed_user']);
+      return SeaseedUser.fromJson(body['user']);
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
       return FishonService.getSeaseedUser();
@@ -213,7 +213,7 @@ class FishonService {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> body = jsonDecode(response.body);
-      List users = body['seaseed_users'];
+      List users = body['users'];
 
       return List<SeaseedUser>.from(
           users.map((user) => SeaseedUser.fromJson(user)));
@@ -284,7 +284,7 @@ class FishonService {
     }
   }
 
-  static Future<bool> createTransfer(String receiverWallet, int amount) async {
+  static Future<bool> createTransfer(String toUserUuid, int amount) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('accessToken');
 
@@ -298,7 +298,7 @@ class FishonService {
         HttpHeaders.authorizationHeader: 'Bearer $token',
       },
       body: {
-        'receiver_wallet_id': receiverWallet,
+        'to_user_uuid': toUserUuid,
         'amount': '$amount',
       },
     );
@@ -307,7 +307,7 @@ class FishonService {
       return true;
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
-      return FishonService.createTransfer(receiverWallet, amount);
+      return FishonService.createTransfer(toUserUuid, amount);
     } else {
       throw Exception('Failed to create Transfer');
     }

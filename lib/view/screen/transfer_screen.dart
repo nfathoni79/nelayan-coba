@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
-import 'package:nelayan_coba/model/wallet.dart';
 import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
@@ -15,7 +14,7 @@ class TransferScreen extends StatefulWidget {
 
 class _TransferScreenState extends State<TransferScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _walletUuid;
+  String? _toUserUuid;
   final _amountController = TextEditingController();
 
   @override
@@ -41,15 +40,15 @@ class _TransferScreenState extends State<TransferScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          MyDropdown<Wallet>(
+                          MyDropdown<SeaseedUser>(
                             items: const [],
-                            asyncItems: (filter) => _getWallets(),
-                            itemAsString: (wallet) => wallet.userFullName,
+                            asyncItems: (filter) => _getOtherSeaseedUsers(),
+                            itemAsString: (user) => user.userFullName,
                             labelText: 'Wallet Tujuan',
                             prefixIcon: const Icon(Icons.wallet),
-                            onChanged: (wallet) => {
-                              if (wallet is Wallet)
-                                {setState(() => _walletUuid = wallet.uuid)}
+                            onChanged: (user) => {
+                              if (user is SeaseedUser)
+                                {setState(() => _toUserUuid = user.userUuid)}
                             },
                             validator: (value) {
                               if (value == null) {
@@ -95,7 +94,7 @@ class _TransferScreenState extends State<TransferScreen> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
 
-                _transfer(context, _walletUuid!, int.parse(_amountController.text));
+                _transfer(context, _toUserUuid!, int.parse(_amountController.text));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
@@ -110,22 +109,14 @@ class _TransferScreenState extends State<TransferScreen> {
     );
   }
 
-  Future<List<Wallet>> _getWallets() async {
-    List<SeaseedUser> users = await FishonService.getOtherSeaseedUsers();
-
-    return List<Wallet>.from(users.map((user) {
-      return Wallet(
-        id: user.id,
-        uuid: user.walletUuid,
-        userFullName: user.userFullName,
-      );
-    }));
+  Future<List<SeaseedUser>> _getOtherSeaseedUsers() async {
+    return FishonService.getOtherSeaseedUsers();
   }
 
-  void _transfer(BuildContext context, String receiverWallet, int amount) {
+  void _transfer(BuildContext context, String toUserUuid, int amount) {
     MyUtils.showLoading(context);
 
-    FishonService.createTransfer(receiverWallet, amount).then((value) {
+    FishonService.createTransfer(toUserUuid, amount).then((value) {
       Navigator.pop(context);
 
       showDialog(
