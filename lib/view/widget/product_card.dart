@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:nelayan_coba/model/product.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/product_screen.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
-    required this.name,
-    required this.price,
+    required this.product,
   });
 
-  final String name;
-  final int price;
+  final Product product;
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +19,11 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(name),
+            Text(product.name),
             const SizedBox(height: 8),
             Expanded(
               child: Text(
-                '${MyUtils.formatNumber(price)} IDR',
+                '${MyUtils.formatNumber(product.price)} IDR',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -33,7 +32,7 @@ class ProductCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const ProductScreen(),
+                builder: (context) => ProductScreen(product: product),
               )),
               child: const Text('Detail'),
             ),

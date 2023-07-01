@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/cart_product.dart';
 import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/mart_repo.dart';
+import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/cart_product_card.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
@@ -15,11 +16,23 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  late Future<List<CartProduct>> _futureCartProductList;
+
   int _martId = 1;
   final List<Mart> _martList = MartRepo.martList;
-  final List<CartProduct> _cartProductList = MartRepo.cartProductList;
+  List<CartProduct> _cartProductList = [];
   int? _shipping = 0;
   int _totalPrice = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureCartProductList = MyUtils.getFutureCartFromPrefs();
+
+    _futureCartProductList.then((value) {
+      _cartProductList = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +58,24 @@ class _CartScreenState extends State<CartScreen> {
                       compareFn: (a, b) => a.id == b.id,
                       prefixIcon: const Icon(Icons.store),
                       selectedItem: _martList[_martId - 1],
+                      disabledItemFn: (mart) => mart.name != 'Perindo Coba',
                       onChanged: (mart) => {
-                        if (mart is Mart) {
-                          setState(() => _martId = mart.id)
-                        }
+                        if (mart is Mart) {setState(() => _martId = mart.id)}
                       },
                     ),
                     const SizedBox(height: 8),
-                    _buildCartProductList(),
+                    FutureBuilder<List<CartProduct>>(
+                      future: _futureCartProductList,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return _buildCartProductList();
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        }
+
+                        return const CircularProgressIndicator();
+                      },
+                    ),
                     const Divider(),
                     const Text(
                       'Pengiriman',
@@ -109,9 +132,21 @@ class _CartScreenState extends State<CartScreen> {
                       children: [
                         const Text('Total Harga'),
                         Expanded(
-                          child: Text(
-                            '${MyUtils.formatNumber(_totalPrice)} IDR',
-                            textAlign: TextAlign.right,
+                          child: FutureBuilder<List<CartProduct>>(
+                            future: _futureCartProductList,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Text(
+                                  '${MyUtils.formatNumber(_totalPrice)} IDR',
+                                  textAlign: TextAlign.right,
+                                );
+                              }
+
+                              return const Text(
+                                '0 IDR',
+                                textAlign: TextAlign.right,
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -121,7 +156,7 @@ class _CartScreenState extends State<CartScreen> {
                         Text('Biaya Layanan'),
                         Expanded(
                           child: Text(
-                            '1.000 IDR',
+                            '0 IDR',
                             textAlign: TextAlign.right,
                           ),
                         ),
@@ -136,12 +171,27 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ),
                         Expanded(
-                          child: Text(
-                            '${MyUtils.formatNumber(_totalPrice + 1000)} IDR',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.right,
+                          child: FutureBuilder<List<CartProduct>>(
+                            future: _futureCartProductList,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Text(
+                                  '${MyUtils.formatNumber(_totalPrice)} IDR',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.right,
+                                );
+                              }
+
+                              return const Text(
+                                '0 IDR',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.right,
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -159,31 +209,25 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Sukses'),
-                  content: const Text(
-                      'Pembayaran berhasil. Barang akan dikirimkan ke alamat Anda.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Tutup'),
-                    ),
-                  ],
-                ),
-                barrierDismissible: true,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.blue.shade50,
-                elevation: 2,
-              ),
-              child: const Text('Bayar'),
+            FutureBuilder<List<CartProduct>>(
+              future: _futureCartProductList,
+              builder: (context, snapshot) {
+                ButtonStyle? buttonStyle;
+
+                if (snapshot.hasData) {
+                  buttonStyle = ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.blue.shade50,
+                    elevation: 2,
+                  );
+                }
+
+                return ElevatedButton(
+                  onPressed: _onPressedPayButton(),
+                  style: buttonStyle,
+                  child: const Text('Bayar'),
+                );
+              },
             ),
           ],
         ),
@@ -198,17 +242,23 @@ class _CartScreenState extends State<CartScreen> {
     for (int i = 0; i < _cartProductList.length; i++) {
       cartProductWidgetList.add(CartProductCard(
         cartProduct: _cartProductList[i],
-        onPlus: () => setState(() => _cartProductList[i].quantity++),
-        onMinus: () {
+        onPlus: () async {
+          setState(() => _cartProductList[i].quantity++);
+          await MyUtils.saveCartToPrefs(_cartProductList);
+        },
+        onMinus: () async {
           if (_cartProductList[i].quantity > 1) {
-            setState(() {
-              _cartProductList[i].quantity--;
-            });
+            setState(() => _cartProductList[i].quantity--);
           } else if (_cartProductList[i].quantity <= 1) {
             setState(() => _cartProductList.removeAt(i));
           }
+
+          await MyUtils.saveCartToPrefs(_cartProductList);
         },
-        onRemove: () => setState(() => _cartProductList.removeAt(i)),
+        onRemove: () async {
+          setState(() => _cartProductList.removeAt(i));
+          await MyUtils.saveCartToPrefs(_cartProductList);
+        },
       ));
 
       _totalPrice +=
@@ -218,5 +268,65 @@ class _CartScreenState extends State<CartScreen> {
     return Column(
       children: cartProductWidgetList,
     );
+  }
+
+  Future _showPaymentSuccessDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sukses'),
+        content: const Text(
+            'Pembayaran berhasil. Barang akan dikirimkan ke alamat Anda.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  Future _showPaymentFailedDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gagal'),
+        content: const Text('Pembayaran gagal.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  void Function()? _onPressedPayButton() {
+    return _cartProductList.isEmpty
+        ? null
+        : () async {
+            MyUtils.showLoading(context);
+            bool transferSuccess = await FishonService.createTransfer(
+                MartRepo.geraiCobaUserUuid, _totalPrice);
+
+            if (mounted) Navigator.pop(context);
+
+            if (!transferSuccess) {
+              _showPaymentFailedDialog();
+              return;
+            }
+
+            await MyUtils.clearCartFromPrefs();
+            _showPaymentSuccessDialog();
+          };
   }
 }

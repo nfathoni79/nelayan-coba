@@ -54,6 +54,7 @@ class _MartScreenState extends State<MartScreen> {
               compareFn: (a, b) => a.id == b.id,
               prefixIcon: const Icon(Icons.store),
               selectedItem: _martList[_martId - 1],
+              disabledItemFn: (mart) => mart.name != 'Perindo Coba',
               onChanged: (mart) => {
                 if (mart is Mart) {
                   setState(() => _martId = mart.id)
@@ -74,11 +75,11 @@ class _MartScreenState extends State<MartScreen> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
+                childAspectRatio: 1.25,
                 children: <Widget>[
                   ..._productList
                       .map((e) => ProductCard(
-                    name: e.name,
-                    price: e.price,
+                    product: e,
                   ))
                       .toList()
                 ],

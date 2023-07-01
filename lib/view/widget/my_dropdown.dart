@@ -15,6 +15,7 @@ class MyDropdown<T> extends StatelessWidget {
     this.itemBuilder,
     this.showSelectedItems = false,
     this.validator,
+    this.disabledItemFn,
   });
 
   final List<T> items;
@@ -28,6 +29,7 @@ class MyDropdown<T> extends StatelessWidget {
   final Widget Function(BuildContext, T, bool)? itemBuilder;
   final bool showSelectedItems;
   final String? Function(T?)? validator;
+  final bool Function(T)? disabledItemFn;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,7 @@ class MyDropdown<T> extends StatelessWidget {
           ),
         ),
         itemBuilder: itemBuilder,
+        disabledItemFn: disabledItemFn,
       ),
       items: items,
       asyncItems: asyncItems,

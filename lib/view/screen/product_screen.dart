@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:nelayan_coba/model/cart_product.dart';
+import 'package:nelayan_coba/model/product.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+  const ProductScreen({
+    super.key,
+    required this.product,
+  });
+
+  final Product product;
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -26,10 +34,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Indomie Rendang'),
-                    const Text(
-                      '3.500 IDR',
-                      style: TextStyle(
+                    Text(widget.product.name),
+                    Text(
+                      '${MyUtils.formatNumber(widget.product.price)} IDR',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                       ),
@@ -45,7 +53,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         children: [
                           Icon(Icons.store),
                           SizedBox(width: 8),
-                          Text('Perindo Muara Baru'),
+                          Text('Perindo Coba'),
                         ],
                       ),
                     ),
@@ -57,26 +65,13 @@ class _ProductScreenState extends State<ProductScreen> {
                         fontSize: 16,
                       ),
                     ),
-                    const Text('Mie instan no. 1 di dunia'),
+                    Text(widget.product.description),
                   ],
                 ),
               ),
             ),
             ElevatedButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Sukses'),
-                  content: const Text('Berhasil ditambahkan ke keranjang.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Tutup'),
-                    ),
-                  ],
-                ),
-                barrierDismissible: true,
-              ),
+              onPressed: _onPressedAddButton(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.blue.shade50,
@@ -88,5 +83,50 @@ class _ProductScreenState extends State<ProductScreen> {
         ),
       ),
     );
+  }
+
+  Future _showCartSuccessDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sukses'),
+        content: const Text('Berhasil ditambahkan ke keranjang.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  void Function()? _onPressedAddButton() {
+    return () async {
+      List<CartProduct> cartProductList =
+          await MyUtils.getFutureCartFromPrefs();
+
+      int index = cartProductList.indexWhere((item) {
+        return item.product.id == widget.product.id;
+      });
+
+      if (index < 0) {
+        cartProductList.add(CartProduct(
+          id: widget.product.id,
+          product: widget.product,
+          quantity: 1,
+        ));
+      } else {
+        cartProductList[index].quantity++;
+      }
+
+      await MyUtils.saveCartToPrefs(cartProductList);
+
+      _showCartSuccessDialog();
+    };
   }
 }
