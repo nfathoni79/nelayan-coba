@@ -296,7 +296,7 @@ class _CartScreenState extends State<CartScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Gagal'),
-        content: const Text('Pembayaran gagal.'),
+        content: const Text('Pembayaran gagal. Pastikan saldo Anda cukup.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -315,15 +315,17 @@ class _CartScreenState extends State<CartScreen> {
         ? null
         : () async {
             MyUtils.showLoading(context);
-            bool transferSuccess = await FishonService.createTransfer(
-                MartRepo.geraiCobaUserUuid, _totalPrice);
 
-            if (mounted) Navigator.pop(context);
-
-            if (!transferSuccess) {
+            try {
+              await FishonService.createTransfer(
+                  MartRepo.geraiCobaUserUuid, _totalPrice);
+            } catch (e) {
+              Navigator.pop(context);
               _showPaymentFailedDialog();
               return;
             }
+
+            if (mounted) Navigator.pop(context);
 
             await MyUtils.clearCartFromPrefs();
             _showPaymentSuccessDialog();
