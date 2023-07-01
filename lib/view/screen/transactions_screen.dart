@@ -48,11 +48,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: transactions
                       .map((trx) => TransactionCard(
-                            date: trx.createdAt,
-                            type: trx.type,
-                            amount: trx.amount,
-                            fromUser: trx.fromUser,
-                            toUser: trx.toUser,
+                            transaction: trx,
                             currentUser: currentUser,
                           ))
                       .toList()

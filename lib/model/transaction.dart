@@ -7,6 +7,7 @@ class Transaction {
     this.toUser,
     required this.amount,
     required this.type,
+    this.remark = '',
     required this.createdAt,
   });
 
@@ -19,6 +20,7 @@ class Transaction {
           : null,
       amount: json['amount'],
       type: json['type'],
+      remark: json['remark'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -28,5 +30,6 @@ class Transaction {
   final SeaseedUser? toUser;
   final int amount;
   final int type;
+  final String remark;
   final DateTime createdAt;
 }

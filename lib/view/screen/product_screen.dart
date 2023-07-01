@@ -42,7 +42,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         fontSize: 20,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),

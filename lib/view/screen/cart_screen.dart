@@ -318,7 +318,7 @@ class _CartScreenState extends State<CartScreen> {
 
             try {
               await FishonService.createTransfer(
-                  MartRepo.geraiCobaUserUuid, _totalPrice);
+                  MartRepo.geraiCobaUserUuid, _totalPrice, 'Belanja');
             } catch (e) {
               Navigator.pop(context);
               _showPaymentFailedDialog();

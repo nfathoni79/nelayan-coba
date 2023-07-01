@@ -284,7 +284,7 @@ class FishonService {
     }
   }
 
-  static Future<bool> createTransfer(String toUserUuid, int amount) async {
+  static Future<bool> createTransfer(String toUserUuid, int amount, String remark) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('accessToken');
 
@@ -300,6 +300,7 @@ class FishonService {
       body: {
         'to_user_uuid': toUserUuid,
         'amount': '$amount',
+        'remark': remark,
       },
     );
 
@@ -307,7 +308,7 @@ class FishonService {
       return true;
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
-      return FishonService.createTransfer(toUserUuid, amount);
+      return FishonService.createTransfer(toUserUuid, amount, remark);
     } else {
       throw Exception('Failed to create Transfer');
     }
