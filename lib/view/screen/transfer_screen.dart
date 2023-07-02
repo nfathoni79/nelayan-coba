@@ -116,7 +116,7 @@ class _TransferScreenState extends State<TransferScreen> {
   void _transfer(BuildContext context, String toUserUuid, int amount) {
     MyUtils.showLoading(context);
 
-    FishonService.createTransfer(toUserUuid, amount, '').then((value) {
+    FishonService.createTransfer(toUserUuid, amount, '', null).then((value) {
       Navigator.pop(context);
 
       showDialog(

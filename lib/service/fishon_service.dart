@@ -284,7 +284,7 @@ class FishonService {
     }
   }
 
-  static Future<bool> createTransfer(String toUserUuid, int amount, String remark) async {
+  static Future<bool> createTransfer(String toUserUuid, int amount, String remark, String? fromUserUuid) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('accessToken');
 
@@ -292,23 +292,29 @@ class FishonService {
       throw Exception('Failed to create Transfer');
     }
 
+    Map<String, String> body = {
+      'to_user_uuid': toUserUuid,
+      'amount': '$amount',
+      'remark': remark,
+    };
+
+    if (fromUserUuid != null) {
+      body['from_user_uuid'] = fromUserUuid;
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/api/seaseed/transfers/'),
       headers: {
         HttpHeaders.authorizationHeader: 'Bearer $token',
       },
-      body: {
-        'to_user_uuid': toUserUuid,
-        'amount': '$amount',
-        'remark': remark,
-      },
+      body: body,
     );
 
     if (response.statusCode == 201) {
       return true;
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
-      return FishonService.createTransfer(toUserUuid, amount, remark);
+      return FishonService.createTransfer(toUserUuid, amount, remark, fromUserUuid);
     } else {
       throw Exception('Failed to create Transfer');
     }

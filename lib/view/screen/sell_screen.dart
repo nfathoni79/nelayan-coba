@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/fish.dart';
 import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/mart_repo.dart';
+import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/sell_fish.dart';
+import 'package:nelayan_coba/service/fishon_service.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/sell_history_screen.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
 import 'package:nelayan_coba/view/widget/my_text_form_field.dart';
@@ -51,6 +54,7 @@ class _SellScreenState extends State<SellScreen> {
               compareFn: (a, b) => a.id == b.id,
               prefixIcon: const Icon(Icons.store),
               selectedItem: _martList[_martId - 1],
+              disabledItemFn: (mart) => mart.name != 'Perindo Coba',
               onChanged: (mart) => {
                 if (mart is Mart) {setState(() => _martId = mart.id)}
               },
@@ -128,23 +132,7 @@ class _SellScreenState extends State<SellScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Sukses'),
-                        content: const Text(
-                            'Penjualan berhasil. Cek status penjualan Anda di Riwayat Penjualan.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Tutup'),
-                          ),
-                        ],
-                      ),
-                      barrierDismissible: true,
-                    ),
+                    onPressed: _onPressedSellButton(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.blue.shade50,
@@ -185,9 +173,76 @@ class _SellScreenState extends State<SellScreen> {
         orElse: () => null);
   }
 
-  bool _isSellFishAlreadyExisted(int fishId) {
-    return _sellFishList
-        .where((sellFish) => sellFish.fish.id == fishId)
-        .isNotEmpty;
+  Future _showSuccessSellDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sukses'),
+        content: const Text(
+            'Penjualan berhasil. Cek status penjualan Anda di Riwayat Penjualan.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  Future _showFailedSellDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gagal'),
+        content: const Text('Penjualan gagal.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  int _calculateSellFishTotalPrice() {
+    int totalPrice = 0;
+
+    for (var sellFish in _sellFishList) {
+      totalPrice += (sellFish.fish.price * sellFish.quantity).ceil();
+    }
+
+    return totalPrice;
+  }
+
+  void Function()? _onPressedSellButton() {
+    return _sellFishList.isEmpty
+        ? null
+        : () async {
+            MyUtils.showLoading(context);
+            int totalPrice = _calculateSellFishTotalPrice();
+
+            try {
+              SeaseedUser user = await FishonService.getSeaseedUser();
+              await FishonService.createTransfer(user.userUuid, totalPrice,
+                  'Jual ikan', MartRepo.pabrikCobaUserUuid);
+            } catch (e) {
+              Navigator.pop(context);
+              _showFailedSellDialog();
+              return;
+            }
+
+            if (mounted) Navigator.pop(context);
+
+            setState(() => _sellFishList.clear());
+            _showSuccessSellDialog();
+          };
   }
 }

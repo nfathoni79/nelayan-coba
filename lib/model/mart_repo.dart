@@ -69,11 +69,11 @@ class MartRepo {
   ];
 
   static List<Fish> fishList = [
-    const Fish(id: 1, name: 'Cakalang'),
-    const Fish(id: 2, name: 'Tuna'),
-    const Fish(id: 3, name: 'Deho'),
-    const Fish(id: 4, name: 'Layang'),
-    const Fish(id: 5, name: 'Salem'),
+    const Fish(id: 1, name: 'Cakalang', price: 30000),
+    const Fish(id: 2, name: 'Tuna', price: 70000),
+    const Fish(id: 3, name: 'Deho', price: 22000),
+    const Fish(id: 4, name: 'Layang', price: 27000),
+    const Fish(id: 5, name: 'Salem', price: 38000),
   ];
 
   static List<CartProduct> cartProductList = [
@@ -90,4 +90,5 @@ class MartRepo {
   ];
 
   static String geraiCobaUserUuid = '174ad106-c6f4-4605-9e4a-56c9145cafff';
+  static String pabrikCobaUserUuid = '05161c58-ae94-486c-9995-306c7f27426b';
 }
