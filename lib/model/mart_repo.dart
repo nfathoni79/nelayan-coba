@@ -89,6 +89,9 @@ class MartRepo {
     ),
   ];
 
-  static String geraiCobaUserUuid = '174ad106-c6f4-4605-9e4a-56c9145cafff';
-  static String pabrikCobaUserUuid = '05161c58-ae94-486c-9995-306c7f27426b';
+  // static String geraiCobaUserUuid = '174ad106-c6f4-4605-9e4a-56c9145cafff';
+  // static String pabrikCobaUserUuid = '05161c58-ae94-486c-9995-306c7f27426b';
+
+  static String geraiCobaUserUuid = 'b4642588-e0d4-43e2-8123-d74afb1cb5cd';
+  static String pabrikCobaUserUuid = '6ba776ef-6144-4345-9f76-b8c7a5407cf7';
 }
