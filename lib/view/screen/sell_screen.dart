@@ -157,7 +157,8 @@ class _SellScreenState extends State<SellScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(e.fish.name),
+                      child: Text(
+                          '${e.fish.name} (${MyUtils.formatNumber(e.fish.price)} IDR/Kg)'),
                     ),
                     Text('${e.quantity.toStringAsFixed(2)} Kg'),
                   ],
