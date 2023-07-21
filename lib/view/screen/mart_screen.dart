@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/mart.dart';
-import 'package:nelayan_coba/model/mart_repo.dart';
 import 'package:nelayan_coba/model/product.dart';
+import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/view/screen/cart_screen.dart';
 import 'package:nelayan_coba/view/screen/mart_history_screen.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
@@ -16,9 +16,16 @@ class MartScreen extends StatefulWidget {
 }
 
 class _MartScreenState extends State<MartScreen> {
-  int _martId = 1;
-  final List<Mart> _martList = MartRepo.martList;
-  final List<Product> _productList = MartRepo.productList;
+  late Future<List<Mart>> _futureMarts;
+  late Future<List<Product>> _futureProducts;
+  Mart? _currentMart;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureMarts = _getMarts();
+    _futureProducts = _getProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +56,18 @@ class _MartScreenState extends State<MartScreen> {
         child: Column(
           children: [
             MyDropdown<Mart>(
-              items: _martList,
+              items: const [],
+              asyncItems: (_) => _futureMarts,
               itemAsString: (mart) => mart.name,
-              compareFn: (a, b) => a.id == b.id,
+              compareFn: (a, b) => a.slug == b.slug,
               prefixIcon: const Icon(Icons.store),
-              selectedItem: _martList[_martId - 1],
-              disabledItemFn: (mart) => mart.name != 'Perindo Coba',
-              onChanged: (mart) => {
+              selectedItem: _currentMart,
+              onChanged: (mart) {
                 if (mart is Mart) {
-                  setState(() => _martId = mart.id)
+                  setState(() {
+                    _currentMart = mart;
+                    _futureProducts = _getProducts();
+                  });
                 }
               },
             ),
@@ -71,23 +81,56 @@ class _MartScreenState extends State<MartScreen> {
             ),
             const Divider(),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 1.25,
-                children: <Widget>[
-                  ..._productList
-                      .map((e) => ProductCard(
-                    product: e,
-                  ))
-                      .toList()
-                ],
+              child: FutureBuilder<List<Product>>(
+                future: _futureProducts,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return GridView.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1.25,
+                      children: <Widget>[
+                        ...snapshot.data!
+                            .map((e) => ProductCard(
+                          product: e,
+                          mart: _currentMart!,
+                        ))
+                            .toList()
+                      ],
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Text('Failed to get products');
+                  }
+
+                  return const Center(child: CircularProgressIndicator());
+                },
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<List<Mart>> _getMarts() async {
+    try {
+      List<Mart> marts = await FishonService.getMarts();
+      setState(() {
+        _currentMart = marts[0];
+      });
+
+      return marts;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Product>> _getProducts() async {
+    if (_currentMart == null) {
+      await _futureMarts;
+    }
+
+    return FishonService.getProductsByStore(_currentMart!.slug, '');
   }
 }

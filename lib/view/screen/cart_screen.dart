@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/cart_product.dart';
 import 'package:nelayan_coba/model/mart.dart';
-import 'package:nelayan_coba/model/mart_repo.dart';
 import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/cart_product_card.dart';
@@ -16,10 +15,10 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  late Future<List<Mart>> _futureMarts;
   late Future<List<CartProduct>> _futureCartProductList;
 
-  int _martId = 1;
-  final List<Mart> _martList = MartRepo.martList;
+  Mart? _currentMart;
   List<CartProduct> _cartProductList = [];
   int? _shipping = 0;
   int _totalPrice = 0;
@@ -27,11 +26,8 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    _futureCartProductList = MyUtils.getFutureCartFromPrefs();
-
-    _futureCartProductList.then((value) {
-      _cartProductList = value;
-    });
+    _futureMarts = _getMarts();
+    _futureCartProductList = _getCart();
   }
 
   @override
@@ -53,14 +49,19 @@ class _CartScreenState extends State<CartScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     MyDropdown<Mart>(
-                      items: _martList,
+                      items: const [],
+                      asyncItems: (_) => _futureMarts,
                       itemAsString: (mart) => mart.name,
-                      compareFn: (a, b) => a.id == b.id,
+                      compareFn: (a, b) => a.slug == b.slug,
                       prefixIcon: const Icon(Icons.store),
-                      selectedItem: _martList[_martId - 1],
-                      disabledItemFn: (mart) => mart.name != 'Perindo Coba',
-                      onChanged: (mart) => {
-                        if (mart is Mart) {setState(() => _martId = mart.id)}
+                      selectedItem: _currentMart,
+                      onChanged: (mart) {
+                        if (mart is Mart) {
+                          setState(() {
+                            _currentMart = mart;
+                            _futureCartProductList = _getCart();
+                          });
+                        }
                       },
                     ),
                     const SizedBox(height: 8),
@@ -73,7 +74,7 @@ class _CartScreenState extends State<CartScreen> {
                           return Text('${snapshot.error}');
                         }
 
-                        return const CircularProgressIndicator();
+                        return const Center(child: CircularProgressIndicator());
                       },
                     ),
                     const Divider(),
@@ -235,7 +236,32 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  Future<List<Mart>> _getMarts() async {
+    try {
+      List<Mart> marts = await FishonService.getMarts();
+      setState(() => _currentMart = marts[0]);
+
+      return marts;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<CartProduct>> _getCart() async {
+    if (_currentMart == null) {
+      await _futureMarts;
+    }
+
+    List<CartProduct> cartProductList =
+        await MyUtils.getFutureCartFromPrefs(_currentMart!.slug);
+    setState(() => _cartProductList = cartProductList);
+
+    return cartProductList;
+  }
+
   Widget _buildCartProductList() {
+    if (_cartProductList.isEmpty) return const Text('Keranjang kosong');
+
     List<Widget> cartProductWidgetList = [];
     _totalPrice = 0;
 
@@ -244,7 +270,7 @@ class _CartScreenState extends State<CartScreen> {
         cartProduct: _cartProductList[i],
         onPlus: () async {
           setState(() => _cartProductList[i].quantity++);
-          await MyUtils.saveCartToPrefs(_cartProductList);
+          await MyUtils.saveCartToPrefs(_cartProductList, _currentMart!.slug);
         },
         onMinus: () async {
           if (_cartProductList[i].quantity > 1) {
@@ -253,11 +279,11 @@ class _CartScreenState extends State<CartScreen> {
             setState(() => _cartProductList.removeAt(i));
           }
 
-          await MyUtils.saveCartToPrefs(_cartProductList);
+          await MyUtils.saveCartToPrefs(_cartProductList, _currentMart!.slug);
         },
         onRemove: () async {
           setState(() => _cartProductList.removeAt(i));
-          await MyUtils.saveCartToPrefs(_cartProductList);
+          await MyUtils.saveCartToPrefs(_cartProductList, _currentMart!.slug);
         },
       ));
 
@@ -291,12 +317,14 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Future _showPaymentFailedDialog() {
+  Future _showPaymentFailedDialog({String? message}) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Gagal'),
-        content: const Text('Pembayaran gagal. Pastikan saldo Anda cukup.'),
+        content: Text(
+          message ?? 'Pembayaran gagal. Pastikan saldo Anda cukup.',
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -317,17 +345,17 @@ class _CartScreenState extends State<CartScreen> {
             MyUtils.showLoading(context);
 
             try {
-              await FishonService.createTransfer(
-                  MartRepo.geraiCobaUserUuid, _totalPrice, 'Belanja', null);
+              await FishonService.purchase(
+                  _currentMart!.slug, _totalPrice, _cartProductList, '');
             } catch (e) {
               Navigator.pop(context);
-              _showPaymentFailedDialog();
+              _showPaymentFailedDialog(message: e.toString());
               return;
             }
 
             if (mounted) Navigator.pop(context);
 
-            await MyUtils.clearCartFromPrefs();
+            await MyUtils.clearCartFromPrefs(_currentMart!.slug);
             _showPaymentSuccessDialog();
           };
   }

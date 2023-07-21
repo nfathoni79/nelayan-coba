@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/product.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/screen/product_screen.dart';
@@ -7,9 +8,11 @@ class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
     required this.product,
+    required this.mart,
   });
 
   final Product product;
+  final Mart mart;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,10 @@ class ProductCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ProductScreen(product: product),
+                builder: (context) => ProductScreen(
+                  product: product,
+                  mart: mart,
+                ),
               )),
               child: const Text('Detail'),
             ),

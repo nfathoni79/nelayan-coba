@@ -2,12 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:nelayan_coba/model/cart_product.dart';
 import 'package:nelayan_coba/model/deposit.dart';
+import 'package:nelayan_coba/model/mart.dart';
+import 'package:nelayan_coba/model/mart_history.dart';
+import 'package:nelayan_coba/model/product.dart';
 import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/transaction.dart';
 import 'package:nelayan_coba/model/user_token.dart';
 import 'package:nelayan_coba/model/withdrawal.dart';
+import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FishonService {
@@ -284,7 +289,8 @@ class FishonService {
     }
   }
 
-  static Future<bool> createTransfer(String toUserUuid, int amount, String remark, String? fromUserUuid) async {
+  static Future<bool> createTransfer(String toUserUuid, int amount,
+      String remark, String? fromUserUuid) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('accessToken');
 
@@ -314,7 +320,8 @@ class FishonService {
       return true;
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
-      return FishonService.createTransfer(toUserUuid, amount, remark, fromUserUuid);
+      return FishonService.createTransfer(
+          toUserUuid, amount, remark, fromUserUuid);
     } else {
       throw Exception('Failed to create Transfer');
     }
@@ -346,6 +353,110 @@ class FishonService {
       return FishonService.getTransactions();
     } else {
       throw Exception('Failed to get transactions');
+    }
+  }
+
+  static Future<List<Mart>> getMarts() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/fishmart/store/?lat=0&lon=0&prefix=PI'),
+    );
+
+    if (response.statusCode == 200) {
+      List marts = jsonDecode(response.body);
+
+      return List<Mart>.from(marts.map((mart) => Mart.fromJson(mart)));
+    } else {
+      throw Exception('Failed to get marts');
+    }
+  }
+
+  static Future<List<Product>> getProductsByStore(
+      String slug, String keyword) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get products');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/fishmart/item/$slug/?keyword=$keyword'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List products = jsonDecode(response.body);
+
+      return List<Product>.from(
+          products.map((product) => Product.fromJson(product)));
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getProductsByStore(slug, keyword);
+    } else {
+      throw Exception('Failed to get products');
+    }
+  }
+
+  static Future<bool> purchase(String slug, int amount,
+      List<CartProduct> cartProductList, String address) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to purchase');
+    }
+
+    Map<String, String> body = {
+      'store': slug,
+      'amount': '$amount',
+      'cart': MyUtils.toStringCartProductList(cartProductList),
+      'address': address,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/fishmart/v2/purchase/'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.purchase(slug, amount, cartProductList, address);
+    } else {
+      String message = jsonDecode(response.body)['message'];
+      throw Exception(message);
+    }
+  }
+
+  static Future<List<MartHistory>> getMartHistoryList(String slug) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get history');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/fishmart/history/?store=$slug'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List historyList = jsonDecode(response.body)['data'];
+      return historyList.map((item) => MartHistory.fromJson(item)).toList();
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getMartHistoryList(slug);
+    } else {
+      throw Exception('Failed to get history');
     }
   }
 }

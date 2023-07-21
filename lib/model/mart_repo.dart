@@ -5,10 +5,10 @@ import 'package:nelayan_coba/model/product.dart';
 
 class MartRepo {
   static List<Mart> martList = [
-    const Mart(id: 1, name: 'Perindo Coba'),
-    const Mart(id: 2, name: 'Perindo Bacan'),
-    const Mart(id: 3, name: 'Perindo Muara Baru'),
-    const Mart(id: 4, name: 'Perindo Subang'),
+    const Mart(id: 1, slug: 'PI0001', name: 'Perindo Coba'),
+    const Mart(id: 2, slug: 'PI0002', name: 'Perindo Bacan'),
+    const Mart(id: 3, slug: 'PI0003', name: 'Perindo Muara Baru'),
+    const Mart(id: 4, slug: 'PI0004', name: 'Perindo Subang'),
   ];
 
   static List<Product> productList = [

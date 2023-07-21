@@ -1,4 +1,3 @@
-import 'package:nelayan_coba/model/mart_repo.dart';
 import 'package:nelayan_coba/model/product.dart';
 
 class CartProduct {
@@ -11,7 +10,7 @@ class CartProduct {
   factory CartProduct.fromJson(Map<String, dynamic> json) {
     return CartProduct(
       id: json['id'],
-      product: MartRepo.productList[json['id'] - 1],
+      product: Product.fromPrefJson(json),
       quantity: json['quantity'],
     );
   }
@@ -21,6 +20,15 @@ class CartProduct {
   int quantity;
 
   Map<String, dynamic> toJson() {
+    return {
+      'id': product.id,
+      'name': product.name,
+      'price': product.price,
+      'quantity': quantity,
+    };
+  }
+
+  Map<String, dynamic> toSimpleJson() {
     return {
       'id': product.id,
       'quantity': quantity,

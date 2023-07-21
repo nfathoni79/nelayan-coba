@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/cart_product.dart';
+import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/product.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 
@@ -7,9 +8,11 @@ class ProductScreen extends StatefulWidget {
   const ProductScreen({
     super.key,
     required this.product,
+    required this.mart,
   });
 
   final Product product;
+  final Mart mart;
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -49,11 +52,11 @@ class _ProductScreenState extends State<ProductScreen> {
                         color: Colors.blue.shade50,
                       ),
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.store),
-                          SizedBox(width: 8),
-                          Text('Perindo Coba'),
+                          const Icon(Icons.store),
+                          const SizedBox(width: 8),
+                          Text(widget.mart.name),
                         ],
                       ),
                     ),
@@ -108,7 +111,7 @@ class _ProductScreenState extends State<ProductScreen> {
   void Function()? _onPressedAddButton() {
     return () async {
       List<CartProduct> cartProductList =
-          await MyUtils.getFutureCartFromPrefs();
+          await MyUtils.getFutureCartFromPrefs(widget.mart.slug);
 
       int index = cartProductList.indexWhere((item) {
         return item.product.id == widget.product.id;
@@ -124,7 +127,7 @@ class _ProductScreenState extends State<ProductScreen> {
         cartProductList[index].quantity++;
       }
 
-      await MyUtils.saveCartToPrefs(cartProductList);
+      await MyUtils.saveCartToPrefs(cartProductList, widget.mart.slug);
 
       _showCartSuccessDialog();
     };
