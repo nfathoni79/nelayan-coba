@@ -10,4 +10,12 @@ class SellFish {
   final int id;
   final Fish fish;
   double quantity;
+
+  Map<String, dynamic> toSellJson() {
+    return {
+      'jenis_ikan_id': id,
+      'jenis_ikan_name': fish.name,
+      'amountOfFish': quantity,
+    };
+  }
 }

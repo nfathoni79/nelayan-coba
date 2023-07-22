@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:nelayan_coba/model/cart_product.dart';
 import 'package:nelayan_coba/model/deposit.dart';
+import 'package:nelayan_coba/model/fish.dart';
 import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/mart_history.dart';
 import 'package:nelayan_coba/model/product.dart';
 import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
+import 'package:nelayan_coba/model/sell_fish.dart';
+import 'package:nelayan_coba/model/sell_history.dart';
 import 'package:nelayan_coba/model/transaction.dart';
 import 'package:nelayan_coba/model/user_token.dart';
 import 'package:nelayan_coba/model/withdrawal.dart';
@@ -455,6 +458,90 @@ class FishonService {
     } else if (response.statusCode == 401) {
       await FishonService.refreshToken();
       return FishonService.getMartHistoryList(slug);
+    } else {
+      throw Exception('Failed to get history');
+    }
+  }
+
+  static Future<List<Fish>> getFishList(String slug) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get fish');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/log/ikan/?area=$slug'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List fishList = jsonDecode(response.body);
+      return fishList.map((fish) => Fish.fromJson(fish)).toList();
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getFishList(slug);
+    } else {
+      throw Exception('Failed to get fish');
+    }
+  }
+
+  static Future<bool> sellFish(String slug, List<SellFish> sellFishList) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to sell fish');
+    }
+
+    Map<String, dynamic> body = {
+      'store': slug,
+      'data': sellFishList.map((item) => item.toSellJson()).toList(),
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/jual/'),
+      headers: {
+        HttpHeaders.contentTypeHeader: 'application/json',
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.sellFish(slug, sellFishList);
+    } else {
+      throw Exception('Failed to sell fishasdfasfs');
+    }
+  }
+
+  static Future<List<SellHistory>> getSellHistoryList(String slug) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('accessToken');
+
+    if (token == null) {
+      throw Exception('Failed to get history');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/jual/?store=$slug'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List historyList = jsonDecode(response.body)['results'];
+      return historyList.map((item) => SellHistory.fromJson(item)).toList();
+    } else if (response.statusCode == 401) {
+      await FishonService.refreshToken();
+      return FishonService.getSellHistoryList(slug);
     } else {
       throw Exception('Failed to get history');
     }

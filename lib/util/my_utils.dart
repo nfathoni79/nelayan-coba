@@ -6,8 +6,8 @@ import 'package:nelayan_coba/model/cart_product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyUtils {
-  static String formatNumber(int number) {
-    return NumberFormat.decimalPattern('id').format(number);
+  static String formatNumber(dynamic number) {
+    return NumberFormat.decimalPattern('id_ID').format(number);
   }
 
   static String formatDate(DateTime dateTime) {

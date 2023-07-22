@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/fish.dart';
 import 'package:nelayan_coba/model/mart.dart';
-import 'package:nelayan_coba/model/mart_repo.dart';
-import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/sell_fish.dart';
 import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
@@ -18,13 +16,21 @@ class SellScreen extends StatefulWidget {
 }
 
 class _SellScreenState extends State<SellScreen> {
-  int _martId = 1;
-  int _fishId = 1;
-  final List<Mart> _martList = MartRepo.martList;
-  final List<Fish> _fishList = MartRepo.fishList;
+  late Future<List<Mart>> _futureMarts;
+  late Future<List<Fish>> _futureFishList;
+
+  Mart? _currentMart;
+  Fish? _currentFish;
   final List<SellFish> _sellFishList = [];
 
   final TextEditingController _quantityController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _futureMarts = _getMarts();
+    _futureFishList = _getFishList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,25 +55,33 @@ class _SellScreenState extends State<SellScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             MyDropdown<Mart>(
-              items: _martList,
+              items: const [],
+              asyncItems: (_) => _futureMarts,
               itemAsString: (mart) => mart.name,
-              compareFn: (a, b) => a.id == b.id,
+              compareFn: (a, b) => a.slug == b.slug,
               prefixIcon: const Icon(Icons.store),
-              selectedItem: _martList[_martId - 1],
-              disabledItemFn: (mart) => mart.name != 'Perindo Coba',
-              onChanged: (mart) => {
-                if (mart is Mart) {setState(() => _martId = mart.id)}
+              selectedItem: _currentMart,
+              onChanged: (mart) {
+                if (mart is Mart) {
+                  setState(() {
+                    _currentMart = mart;
+                    _futureFishList = _getFishList();
+                  });
+                }
               },
             ),
             const SizedBox(height: 8),
             MyDropdown<Fish>(
-              items: _fishList,
-              itemAsString: (mart) => mart.name,
+              items: const [],
+              asyncItems: (_) => _futureFishList,
+              itemAsString: (fish) => fish.name,
               compareFn: (a, b) => a.id == b.id,
               prefixIcon: const Icon(Icons.set_meal),
-              selectedItem: _fishList[_fishId - 1],
-              onChanged: (fish) => {
-                if (fish is Fish) {setState(() => _fishId = fish.id)}
+              selectedItem: _currentFish,
+              onChanged: (fish) {
+                if (fish is Fish) {
+                  setState(() => _currentFish = fish);
+                }
               },
             ),
             const SizedBox(height: 8),
@@ -82,23 +96,7 @@ class _SellScreenState extends State<SellScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  if (double.tryParse(_quantityController.text) == null) return;
-
-                  SellFish? sellFish = _getSellFishByFishId(_fishId);
-
-                  if (sellFish != null) {
-                    sellFish.quantity += double.parse(_quantityController.text);
-                  } else {
-                    _sellFishList.add(SellFish(
-                      id: _sellFishList.length + 1,
-                      fish: _fishList[_fishId - 1],
-                      quantity: double.parse(_quantityController.text),
-                    ));
-                  }
-                });
-              },
+              onPressed: _onPressedAddButton(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.green.shade50,
@@ -213,37 +211,77 @@ class _SellScreenState extends State<SellScreen> {
     );
   }
 
-  int _calculateSellFishTotalPrice() {
-    int totalPrice = 0;
-
-    for (var sellFish in _sellFishList) {
-      totalPrice += (sellFish.fish.price * sellFish.quantity).ceil();
+  void Function()? _onPressedAddButton() {
+    if (_currentFish == null ||
+        (_currentMart!.oneFish && _sellFishList.isNotEmpty)) {
+      return null;
     }
 
-    return totalPrice;
+    return () {
+      if (double.tryParse(_quantityController.text) == null) return;
+
+      SellFish? sellFish = _getSellFishByFishId(_currentFish!.id);
+
+      if (sellFish != null) {
+        setState(
+            () => sellFish.quantity += double.parse(_quantityController.text));
+      } else {
+        setState(() => _sellFishList.add(SellFish(
+              id: _currentFish!.id,
+              fish: _currentFish!,
+              quantity: double.parse(_quantityController.text),
+            )));
+      }
+    };
   }
 
-  void Function()? _onPressedSellButton() {
-    return _sellFishList.isEmpty
-        ? null
-        : () async {
-            MyUtils.showLoading(context);
-            int totalPrice = _calculateSellFishTotalPrice();
+  void Function()? _onPressedSellButton() => _sellFishList.isEmpty
+      ? null
+      : () async {
+          MyUtils.showLoading(context);
 
-            try {
-              SeaseedUser user = await FishonService.getSeaseedUser();
-              await FishonService.createTransfer(user.userUuid, totalPrice,
-                  'Jual ikan', MartRepo.pabrikCobaUserUuid);
-            } catch (e) {
-              Navigator.pop(context);
-              _showFailedSellDialog();
-              return;
-            }
+          try {
+            await FishonService.sellFish(_currentMart!.slug, _sellFishList);
+          } catch (e) {
+            debugPrint('onPressedSellButton: $e');
+            Navigator.pop(context);
+            _showFailedSellDialog();
+            return;
+          }
 
-            if (mounted) Navigator.pop(context);
+          if (mounted) Navigator.pop(context);
 
-            setState(() => _sellFishList.clear());
-            _showSuccessSellDialog();
-          };
+          setState(() => _sellFishList.clear());
+          _showSuccessSellDialog();
+        };
+
+  Future<List<Mart>> _getMarts() async {
+    try {
+      List<Mart> marts = await FishonService.getMarts();
+      setState(() => _currentMart = marts[0]);
+
+      return marts;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Fish>> _getFishList() async {
+    _quantityController.clear();
+    setState(() => _sellFishList.clear());
+
+    if (_currentMart == null) {
+      await _futureMarts;
+    }
+
+    List<Fish> fishList = await FishonService.getFishList(_currentMart!.slug);
+
+    if (fishList.isNotEmpty) {
+      setState(() => _currentFish = fishList[0]);
+    } else {
+      setState(() => _currentFish = null);
+    }
+
+    return fishList;
   }
 }
