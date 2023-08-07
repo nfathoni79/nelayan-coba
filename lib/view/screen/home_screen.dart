@@ -3,16 +3,16 @@ import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/service/fishon_service.dart';
 import 'package:nelayan_coba/util/my_strings.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
+import 'package:nelayan_coba/view/deposit_view.dart';
 import 'package:nelayan_coba/view/screen/cart_screen.dart';
-import 'package:nelayan_coba/view/screen/deposit_screen.dart';
 import 'package:nelayan_coba/view/screen/mart_screen.dart';
 import 'package:nelayan_coba/view/screen/profile_screen.dart';
 import 'package:nelayan_coba/view/screen/sell_screen.dart';
-import 'package:nelayan_coba/view/screen/transactions_screen.dart';
-import 'package:nelayan_coba/view/screen/transfer_screen.dart';
-import 'package:nelayan_coba/view/screen/withdrawal_screen.dart';
+import 'package:nelayan_coba/view/transactions_view.dart';
+import 'package:nelayan_coba/view/transfer_view.dart';
 import 'package:nelayan_coba/view/widget/menu_button.dart';
 import 'package:nelayan_coba/view/widget/menu_card.dart';
+import 'package:nelayan_coba/view/withdrawal_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // splashColor: Colors.blue,
                   onTap: () => Navigator.of(context)
                       .push(MaterialPageRoute(
-                        builder: (context) => const DepositScreen(),
+                        builder: (_) => const DepositView(),
                       ))
                       .then((value) => _updateFutureSeaseedUser()),
                 ),
@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // splashColor: Colors.blue,
                   onTap: () => Navigator.of(context)
                       .push(MaterialPageRoute(
-                        builder: (context) => const TransferScreen(),
+                        builder: (_) => const TransferView(),
                       ))
                       .then((value) => _updateFutureSeaseedUser()),
                 ),
@@ -210,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // splashColor: Colors.blue,
                   onTap: () => Navigator.of(context)
                       .push(MaterialPageRoute(
-                        builder: (context) => const WithdrawalScreen(),
+                        builder: (_) => const WithdrawalView(),
                       ))
                       .then((value) => _updateFutureSeaseedUser()),
                 ),
@@ -229,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // color: Colors.blue.shade50,
                   // splashColor: Colors.blue,
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const TransactionsScreen(),
+                    builder: (_) => const TransactionsView(),
                   )),
                 ),
               ],

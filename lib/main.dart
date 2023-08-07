@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:nelayan_coba/app/locator.dart';
 import 'package:nelayan_coba/view/screen/home_screen.dart';
 import 'package:nelayan_coba/view/screen/intro_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
+
+  setupLocator();
 
   Widget home = const HomeScreen();
   SharedPreferences prefs = await SharedPreferences.getInstance();

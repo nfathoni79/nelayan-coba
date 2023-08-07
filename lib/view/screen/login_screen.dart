@@ -78,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixText: '+62',
                   keyboardType: TextInputType.number,
                   maxLength: 12,
+                  useLoginStyle: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Isi nomor ponsel Anda';

@@ -15,7 +15,7 @@ class MyTextFormField extends StatelessWidget {
     this.textInputAction,
     this.validator,
     this.enabled,
-    this.useLoginStyle = true,
+    this.useLoginStyle = false,
   });
 
   final TextEditingController? controller;
@@ -36,7 +36,7 @@ class MyTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget? labelWidget;
 
-    if (labelText != null) {
+    if (labelText != null && useLoginStyle) {
       labelWidget = Container(
         padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
         decoration: useLoginStyle
@@ -47,6 +47,8 @@ class MyTextFormField extends StatelessWidget {
             : null,
         child: Text(labelText!),
       );
+    } else {
+      labelWidget = Text(labelText!);
     }
 
     return TextFormField(
@@ -84,7 +86,8 @@ class MyTextFormField extends StatelessWidget {
             width: 2,
           ),
         ),
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         label: labelWidget,
         hintText: hintText,
         prefixIcon: prefixIcon,

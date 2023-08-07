@@ -4,7 +4,7 @@ class Withdrawal {
     required this.createdAt,
     required this.expiredAt,
     required this.status,
-    required this.paymentLink,
+    this.paymentLink,
   });
 
   factory Withdrawal.fromJson(Map<String, dynamic> json) {
@@ -21,5 +21,5 @@ class Withdrawal {
   final DateTime createdAt;
   final DateTime expiredAt;
   final String status;
-  final String paymentLink;
+  final String? paymentLink;
 }

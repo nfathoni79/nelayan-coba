@@ -79,6 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.number,
                         maxLength: 12,
                         textInputAction: TextInputAction.next,
+                        useLoginStyle: true,
                         enabled: false,
                       ),
                       const SizedBox(height: 16),
@@ -88,6 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.name,
                         maxLength: 50,
                         textInputAction: TextInputAction.next,
+                        useLoginStyle: true,
                         validator: (value) =>
                             _validateEmpty(value, 'Isi nama lengkap Anda'),
                       ),
@@ -98,6 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.number,
                         maxLength: 16,
                         textInputAction: TextInputAction.done,
+                        useLoginStyle: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Isi nomor KTP Anda';
