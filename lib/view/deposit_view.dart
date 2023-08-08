@@ -55,6 +55,12 @@ class DepositView extends StackedView<DepositViewModel> {
               ),
             ),
             MyButton(
+              text: 'Cek Status Terakhir',
+              backgroundColor: Colors.blue.shade50,
+              foregroundColor: Colors.grey.shade800,
+              onPressed: () => _onPressedStatus(context, viewModel),
+            ),
+            MyButton(
               text: 'Setor',
               backgroundColor: Colors.blue,
               foregroundColor: Colors.blue.shade50,
@@ -77,9 +83,11 @@ class DepositView extends StackedView<DepositViewModel> {
 
     try {
       Deposit? deposit = await viewModel.createDeposit();
+      await viewModel.setLastDepositUuid(deposit!.uuid);
+
       if (context.mounted) {
         Navigator.pop(context);
-        _showDepositSuccessDialog(context, deposit!);
+        _showDepositSuccessDialog(context, deposit);
       }
     } catch (e) {
       Navigator.pop(context);
@@ -87,8 +95,32 @@ class DepositView extends StackedView<DepositViewModel> {
     }
   }
 
-  Future _showDepositSuccessDialog(
-      BuildContext context, Deposit deposit) {
+  void _onPressedStatus(
+      BuildContext context, DepositViewModel viewModel) async {
+    MyUtils.showLoading(context);
+
+    try {
+      Deposit? deposit = await viewModel.getLastDeposit();
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        if (deposit == null) {
+          MyUtils.showErrorDialog(
+            context,
+            message: 'Tidak dapat memperoleh status setor terakhir Anda.',
+          );
+          return;
+        }
+
+        _showDepositStatusDialog(context, deposit);
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      MyUtils.showErrorDialog(context, message: e.toString());
+    }
+  }
+
+  Future _showDepositSuccessDialog(BuildContext context, Deposit deposit) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -100,9 +132,9 @@ class DepositView extends StackedView<DepositViewModel> {
             const Text('Lakukan pembayaran pada tautan berikut:'),
             InkWell(
               onTap: () async =>
-              await launchUrl(Uri.parse(deposit.paymentLink)),
+                  await launchUrl(Uri.parse(deposit.paymentLink!)),
               child: Text(
-                deposit.paymentLink,
+                deposit.paymentLink!,
                 style: TextStyle(
                   color: Colors.blue.shade800,
                   decoration: TextDecoration.underline,
@@ -119,6 +151,31 @@ class DepositView extends StackedView<DepositViewModel> {
               Navigator.pop(context);
             },
             child: const Text('Saya sudah melakukan pembayaran'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Future _showDepositStatusDialog(BuildContext context, Deposit deposit) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Info'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Status setor terakhir Anda: ${deposit.status}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
           ),
         ],
       ),

@@ -139,6 +139,33 @@ class FishonNewService {
     throw Exception(message);
   }
 
+  /// Get a deposit by UUID.
+  Future<Deposit> getDeposit(String uuid) async {
+    String? token = await _prefsService.getAccessToken();
+    if (token == null) throw Exception('Failed to get token.');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/seaseed/deposits/?uuid=$uuid'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      return Deposit.fromJson(body['deposit']);
+    }
+
+    if (response.statusCode == 401) {
+      await refreshToken();
+      return getDeposit(uuid);
+    }
+
+    String message =
+        jsonDecode(response.body)['message'] ?? 'Failed to get deposit.';
+    throw Exception(message);
+  }
+
   /// Create a withdrawal.
   Future<Withdrawal> createWithdrawal(
       int amount, String email, String accountNo, String bankCode) async {
@@ -170,6 +197,33 @@ class FishonNewService {
 
     String message =
         jsonDecode(response.body)['message'] ?? 'Failed to create withdrawal.';
+    throw Exception(message);
+  }
+
+  /// Get a withdrawal by UUID.
+  Future<Withdrawal> getWithdrawal(String uuid) async {
+    String? token = await _prefsService.getAccessToken();
+    if (token == null) throw Exception('Failed to get token.');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/seaseed/withdrawals/?uuid=$uuid'),
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(response.body);
+      return Withdrawal.fromJson(body['withdrawal']);
+    }
+
+    if (response.statusCode == 401) {
+      await refreshToken();
+      return getWithdrawal(uuid);
+    }
+
+    String message =
+        jsonDecode(response.body)['message'] ?? 'Failed to get withdrawal.';
     throw Exception(message);
   }
 

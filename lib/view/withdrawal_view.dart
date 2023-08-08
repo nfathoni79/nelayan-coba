@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nelayan_coba/model/bank.dart';
+import 'package:nelayan_coba/model/withdrawal.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:nelayan_coba/view/widget/my_button.dart';
 import 'package:nelayan_coba/view/widget/my_dropdown.dart';
@@ -42,6 +43,12 @@ class WithdrawalView extends StackedView<WithdrawalViewModel> {
                     ],
                   ),
                 ),
+              ),
+              MyButton(
+                text: 'Cek Status Terakhir',
+                backgroundColor: Colors.blue.shade50,
+                foregroundColor: Colors.grey.shade800,
+                onPressed: () => _onPressedStatus(context, viewModel),
               ),
               MyButton(
                 text: 'Tarik',
@@ -114,12 +121,14 @@ class WithdrawalView extends StackedView<WithdrawalViewModel> {
     MyUtils.showLoading(context);
 
     try {
-      await viewModel.createWithdrawal();
+      Withdrawal? withdrawal = await viewModel.createWithdrawal();
+      await viewModel.setLastWithdrawalUuid(withdrawal!.uuid);
+
       if (context.mounted) {
         Navigator.pop(context);
         MyUtils.showSuccessDialog(
           context,
-          message: 'Berhasil melakukan penarikan.',
+          message: 'Penarikan sedang diproses.',
           doublePop: true,
         );
       }
@@ -127,5 +136,56 @@ class WithdrawalView extends StackedView<WithdrawalViewModel> {
       Navigator.pop(context);
       MyUtils.showErrorDialog(context, message: e.toString());
     }
+  }
+
+  void _onPressedStatus(
+      BuildContext context, WithdrawalViewModel viewModel) async {
+    MyUtils.showLoading(context);
+
+    try {
+      Withdrawal? withdrawal = await viewModel.getLastWithdrawal();
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        if (withdrawal == null) {
+          MyUtils.showErrorDialog(
+            context,
+            message: 'Tidak dapat memperoleh status penarikan terakhir Anda.',
+          );
+          return;
+        }
+
+        _showWithdrawalStatusDialog(context, withdrawal);
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      MyUtils.showErrorDialog(context, message: e.toString());
+    }
+  }
+
+  Future _showWithdrawalStatusDialog(
+      BuildContext context, Withdrawal withdrawal) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Info'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Status penarikan terakhir Anda: ${withdrawal.status}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 }

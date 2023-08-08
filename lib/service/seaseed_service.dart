@@ -28,9 +28,17 @@ class SeaseedService {
     return _fishon.createDeposit(amount);
   }
 
+  Future<Deposit> getDeposit(String uuid) async {
+    return _fishon.getDeposit(uuid);
+  }
+
   Future<Withdrawal> createWithdrawal(
       int amount, String email, String accountNo, String bankCode) async {
     return _fishon.createWithdrawal(amount, email, accountNo, bankCode);
+  }
+
+  Future<Withdrawal> getWithdrawal(String uuid) async {
+    return _fishon.getWithdrawal(uuid);
   }
 
   Future<List<Bank>> getBanks() async {

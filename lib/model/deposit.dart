@@ -4,8 +4,8 @@ class Deposit {
     required this.createdAt,
     required this.expiredAt,
     required this.status,
-    required this.ref,
-    required this.paymentLink,
+    this.ref,
+    this.paymentLink,
   });
 
   factory Deposit.fromJson(Map<String, dynamic> json) {
@@ -23,6 +23,6 @@ class Deposit {
   final DateTime createdAt;
   final DateTime expiredAt;
   final String status;
-  final String ref;
-  final String paymentLink;
+  final String? ref;
+  final String? paymentLink;
 }

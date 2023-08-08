@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:nelayan_coba/model/cart_product.dart';
-import 'package:nelayan_coba/model/deposit.dart';
 import 'package:nelayan_coba/model/fish.dart';
 import 'package:nelayan_coba/model/mart.dart';
 import 'package:nelayan_coba/model/mart_history.dart';
@@ -12,9 +11,7 @@ import 'package:nelayan_coba/model/profile.dart';
 import 'package:nelayan_coba/model/seaseed_user.dart';
 import 'package:nelayan_coba/model/sell_fish.dart';
 import 'package:nelayan_coba/model/sell_history.dart';
-import 'package:nelayan_coba/model/transaction.dart';
 import 'package:nelayan_coba/model/user_token.dart';
-import 'package:nelayan_coba/model/withdrawal.dart';
 import 'package:nelayan_coba/util/my_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -230,132 +227,6 @@ class FishonService {
       return FishonService.getOtherSeaseedUsers();
     } else {
       throw Exception('Failed to get other Seaseed users');
-    }
-  }
-
-  static Future<Deposit> createDeposit(int amount) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accessToken');
-
-    if (token == null) {
-      throw Exception('Failed to create Deposit');
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/seaseed/deposits/'),
-      headers: {
-        HttpHeaders.authorizationHeader: 'Bearer $token',
-      },
-      body: {
-        'amount': '$amount',
-      },
-    );
-
-    if (response.statusCode == 201) {
-      Map<String, dynamic> body = jsonDecode(response.body);
-      return Deposit.fromJson(body['deposit']);
-    } else if (response.statusCode == 401) {
-      await FishonService.refreshToken();
-      return FishonService.createDeposit(amount);
-    } else {
-      throw Exception('Failed to create Deposit');
-    }
-  }
-
-  static Future<Withdrawal> createWithdrawal(int amount, String email) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accessToken');
-
-    if (token == null) {
-      throw Exception('Failed to create Withdrawal');
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/seaseed/withdrawals/'),
-      headers: {
-        HttpHeaders.authorizationHeader: 'Bearer $token',
-      },
-      body: {
-        'amount': '$amount',
-        'email': email,
-      },
-    );
-
-    if (response.statusCode == 201) {
-      Map<String, dynamic> body = jsonDecode(response.body);
-      return Withdrawal.fromJson(body['withdrawal']);
-    } else if (response.statusCode == 401) {
-      await FishonService.refreshToken();
-      return FishonService.createWithdrawal(amount, email);
-    } else {
-      throw Exception('Failed to create Withdrawal');
-    }
-  }
-
-  static Future<bool> createTransfer(String toUserUuid, int amount,
-      String remark, String? fromUserUuid) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accessToken');
-
-    if (token == null) {
-      throw Exception('Failed to create Transfer');
-    }
-
-    Map<String, String> body = {
-      'to_user_uuid': toUserUuid,
-      'amount': '$amount',
-      'remark': remark,
-    };
-
-    if (fromUserUuid != null) {
-      body['from_user_uuid'] = fromUserUuid;
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/seaseed/transfers/'),
-      headers: {
-        HttpHeaders.authorizationHeader: 'Bearer $token',
-      },
-      body: body,
-    );
-
-    if (response.statusCode == 201) {
-      return true;
-    } else if (response.statusCode == 401) {
-      await FishonService.refreshToken();
-      return FishonService.createTransfer(
-          toUserUuid, amount, remark, fromUserUuid);
-    } else {
-      throw Exception('Failed to create Transfer');
-    }
-  }
-
-  static Future<List<Transaction>> getTransactions() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('accessToken');
-
-    if (token == null) {
-      throw Exception('Failed to get transactions');
-    }
-
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/seaseed/transactions/'),
-      headers: {
-        HttpHeaders.authorizationHeader: 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> body = jsonDecode(response.body);
-      List transactions = body['transactions'];
-
-      return List<Transaction>.from(
-          transactions.map((trx) => Transaction.fromJson(trx)));
-    } else if (response.statusCode == 401) {
-      await FishonService.refreshToken();
-      return FishonService.getTransactions();
-    } else {
-      throw Exception('Failed to get transactions');
     }
   }
 
