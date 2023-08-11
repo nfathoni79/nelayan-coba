@@ -21,6 +21,13 @@ class MyUtils {
     ));
   }
 
+  static void showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+    ));
+  }
+
   static Future showLoading(BuildContext context) {
     return showDialog(
       context: context,
