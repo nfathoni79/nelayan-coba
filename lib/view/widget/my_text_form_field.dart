@@ -47,7 +47,7 @@ class MyTextFormField extends StatelessWidget {
             : null,
         child: Text(labelText!),
       );
-    } else {
+    } else if (labelText != null) {
       labelWidget = Text(labelText!);
     }
 
